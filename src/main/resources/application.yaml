@@ -1,3 +1,13 @@
 spring:
   application:
     name: triage
+  thymeleaf:
+    cache: false
+
+zephyr:
+  api-url: https://api.zephyrscale.smartbear.com/v2
+  api-token: ${ZEPHYR_API_TOKEN:}
+  page-size: 10
+  projects:
+    B2C: SQM
+    B2B: SB2B

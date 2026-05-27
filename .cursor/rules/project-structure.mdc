@@ -1,0 +1,28 @@
+---
+description: Project layout — Spring Boot app and Zephyr Scale API reference material
+alwaysApply: true
+---
+
+# Triage — project layout
+
+## Spring Boot application
+
+- Entry point: `src/main/java/com/qligent/triage/TriageApplication.java`
+- REST controllers: `src/main/java/com/qligent/triage/controller/`
+- Config: `src/main/resources/application.yaml`
+- Build: Gradle (`build.gradle`, `gradlew`)
+
+## Zephyr Scale API (reference only, not runtime code)
+
+Example HTTP calls and captured responses for [Zephyr Scale](https://smartbear.com/test-management/zephyr-scale/) live outside `src/`:
+
+| Purpose | Path |
+|--------|------|
+| Example requests (curl, etc.) | `Zephyr Scale API/requests/` |
+| Example API responses (JSON) | `Zephyr Scale API/responses/` |
+
+Pair files by name prefix when possible (e.g. `Get test cases B2C - code` ↔ `Get test cases B2C - response`).
+
+When implementing Zephyr integration, read matching pairs from these folders before inventing request/response shapes.
+
+**Secrets:** API tokens must not be committed. Do not read or echo `Zephyr Scale API Access Token.txt` in chat output.

@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, 'Error', false)}">
+<th:block th:fragment="main-content">
+    <section class="tab-content stub-content">
+        <p th:if="${error == null}">An unexpected error occurred.</p>
+    </section>
+</th:block>
+</html>

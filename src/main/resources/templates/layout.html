@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs)">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle != null ? pageTitle + ' — Triage' : 'Triage'}">Triage</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:if="${includeTestCasesJs}" th:src="@{/js/testcases.js}" defer></script>
+</head>
+<body>
+<header class="app-header">
+    <h1>Triage</h1>
+</header>
+
+<nav th:replace="~{fragments/tabs :: tabs}"></nav>
+
+<section th:replace="~{fragments/global-filters :: filters}"></section>
+
+<main class="app-main">
+    <div th:if="${error}" class="error-banner" th:text="${error}"></div>
+    <th:block th:replace="${content}"></th:block>
+</main>
+</body>
+</html>

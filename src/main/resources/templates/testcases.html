@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, null, true)}">
+<th:block th:fragment="main-content">
+    <section class="tab-content">
+        <div class="actions">
+            <button type="button" id="prioritize-btn" class="btn btn-primary" disabled>Prioritize</button>
+        </div>
+
+        <form class="local-filters" method="get" th:action="@{/testcases}">
+            <input type="hidden" name="project" th:value="${project}">
+            <input type="hidden" name="page" value="0">
+            <label for="priority-filter">Priority</label>
+            <select id="priority-filter" name="priority" onchange="this.form.submit()">
+                <option value="">All priorities</option>
+                <option th:each="priority : ${pageView.priorities}"
+                        th:value="${priority.id}"
+                        th:text="${priority.name}"
+                        th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == priority.id}">
+                </option>
+            </select>
+        </form>
+
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th class="col-checkbox"></th>
+                <th class="col-key">Key</th>
+                <th class="col-priority">Priority</th>
+                <th class="col-name">Name</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(pageView.testCases)}">
+                <td colspan="4" class="empty-row">No test cases found.</td>
+            </tr>
+            <tr th:each="testCase : ${pageView.testCases}">
+                <td class="col-checkbox">
+                    <input type="checkbox" class="testcase-checkbox" th:value="${testCase.key}">
+                </td>
+                <td class="col-key" th:text="${testCase.key}"></td>
+                <td class="col-priority" th:text="${testCase.priority}"></td>
+                <td class="col-name" th:text="${testCase.name}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <nav class="pagination" th:if="${pageView.totalItems > 0}">
+            <a th:if="${pageView.currentPage > 0}"
+               th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, page=${pageView.currentPage - 1})}"
+               class="pagination-link">Previous</a>
+
+            <span class="pagination-info"
+                  th:text="'Page ' + (${pageView.currentPage} + 1) + ' of ' + ${pageView.totalPages}
+                    + ' (' + ${pageView.totalItems} + ' items)'">
+            </span>
+
+            <a th:if="${!pageView.lastPage}"
+               th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, page=${pageView.currentPage + 1})}"
+               class="pagination-link">Next</a>
+        </nav>
+    </section>
+</th:block>
+</html>
