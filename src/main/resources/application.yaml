@@ -11,3 +11,7 @@ zephyr:
   projects:
     B2C: SQM
     B2B: SB2B
+
+llm:
+  base-url: http://localhost:11434
+  model: qwen2.5:3b

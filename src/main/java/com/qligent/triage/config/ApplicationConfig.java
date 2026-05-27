@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties(ZephyrProperties.class)
+@EnableConfigurationProperties({ ZephyrProperties.class, LlmProperties.class })
 public class ApplicationConfig {
 
 	@Bean
@@ -14,6 +14,14 @@ public class ApplicationConfig {
 		return RestClient.builder()
 				.baseUrl(properties.apiUrl())
 				.defaultHeader("Authorization", "Bearer " + properties.apiToken())
+				.defaultHeader("Accept", "application/json")
+				.build();
+	}
+
+	@Bean
+	RestClient llmRestClient(LlmProperties properties) {
+		return RestClient.builder()
+				.baseUrl(properties.baseUrl())
 				.defaultHeader("Accept", "application/json")
 				.build();
 	}
