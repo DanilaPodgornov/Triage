@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 import org.springframework.stereotype.Service;
 
@@ -15,7 +16,6 @@ import com.qligent.triage.web.model.PriorityOption;
 import com.qligent.triage.web.model.TestCaseView;
 import com.qligent.triage.web.model.TestCasesPageView;
 import com.qligent.triage.zephyr.ZephyrScaleClient;
-import com.qligent.triage.zephyr.dto.PriorityDto;
 import com.qligent.triage.zephyr.dto.TestCaseDto;
 
 @Service
@@ -35,20 +35,36 @@ public class TestCaseService {
 		Map<Long, String> priorityNames = priorities.stream()
 				.collect(Collectors.toMap(PriorityOption::id, PriorityOption::name));
 
-		Optional<String> zql = priorityId.flatMap(id -> Optional.ofNullable(priorityNames.get(id))
-				.map(name -> "priority = \"" + name + "\""));
-
 		int pageSize = properties.pageSize();
-		int startAt = page * pageSize;
-		var response = zephyrScaleClient.getTestCases(projectKey, startAt, pageSize, zql);
+		List<TestCaseDto> sourceCases;
+		int totalItems;
+		boolean lastPage;
 
-		List<TestCaseView> testCases = response.values() == null
-				? Collections.emptyList()
-				: response.values().stream()
-						.map(toView(priorityNames))
-						.toList();
+		if (priorityId.isPresent()) {
+			long selectedPriorityId = priorityId.get();
+			List<TestCaseDto> filteredCases = loadAllTestCases(projectKey).stream()
+					.filter(testCase -> testCase.priority() != null && testCase.priority().id() == selectedPriorityId)
+					.toList();
 
-		int totalPages = response.total() == 0 ? 1 : (int) Math.ceil((double) response.total() / pageSize);
+			totalItems = filteredCases.size();
+			int fromIndex = Math.min(page * pageSize, totalItems);
+			int toIndex = Math.min(fromIndex + pageSize, totalItems);
+			sourceCases = filteredCases.subList(fromIndex, toIndex);
+			int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / pageSize);
+			lastPage = totalItems == 0 || page >= totalPages - 1;
+		} else {
+			int startAt = page * pageSize;
+			var response = zephyrScaleClient.getTestCases(projectKey, startAt, pageSize, Optional.empty());
+			sourceCases = response.values() == null ? Collections.emptyList() : response.values();
+			totalItems = response.total();
+			lastPage = response.isLast();
+		}
+
+		List<TestCaseView> testCases = sourceCases.stream()
+				.map(toView(priorityNames))
+				.toList();
+
+		int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / pageSize);
 
 		return new TestCasesPageView(
 				project,
@@ -57,10 +73,28 @@ public class TestCaseService {
 				testCases,
 				page,
 				pageSize,
-				response.total(),
+				totalItems,
 				totalPages,
-				response.isLast()
+				lastPage
 		);
+	}
+
+	private List<TestCaseDto> loadAllTestCases(String projectKey) {
+		List<TestCaseDto> allCases = new ArrayList<>();
+		int startAt = 0;
+		int chunkSize = 1000;
+		boolean isLast;
+
+		do {
+			var response = zephyrScaleClient.getTestCases(projectKey, startAt, chunkSize, Optional.empty());
+			if (response.values() != null) {
+				allCases.addAll(response.values());
+			}
+			isLast = response.isLast();
+			startAt += response.maxResults() > 0 ? response.maxResults() : chunkSize;
+		} while (!isLast);
+
+		return allCases;
 	}
 
 	private List<PriorityOption> loadPriorities(String projectKey) {

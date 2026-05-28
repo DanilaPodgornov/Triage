@@ -1,3 +1,4 @@
+# noinspection YAMLSchemaValidation
 spring:
   application:
     name: triage

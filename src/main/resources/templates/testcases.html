@@ -36,7 +36,8 @@
             </tr>
             <tr th:each="testCase : ${pageView.testCases}">
                 <td class="col-checkbox">
-                    <input type="checkbox" class="testcase-checkbox" th:value="${testCase.key}">
+                    <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}" th:value="${testCase.key}">
+                    <label class="sr-only" th:for="'tc-' + ${testCase.key}" th:text="'Select test case ' + ${testCase.key}">Select test case</label>
                 </td>
                 <td class="col-key" th:text="${testCase.key}"></td>
                 <td class="col-priority" th:text="${testCase.priority}"></td>

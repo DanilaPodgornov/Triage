@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.mockito.BDDMockito.then;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +61,30 @@ class WebControllersTest {
 				.andExpect(view().name("testcases"))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("SQM-T1")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Prioritize")));
+	}
+
+	@Test
+	void testCasesPriorityFilterPassedToService() throws Exception {
+		var pageView = new TestCasesPageView(
+				Project.B2C,
+				List.of(),
+				1140558L,
+				List.of(),
+				0,
+				10,
+				0,
+				1,
+				true
+		);
+		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(Optional.of(1140558L)), eq(0))).willReturn(pageView);
+
+		mockMvc.perform(get("/testcases")
+						.param("project", "B2C")
+						.param("priority", "1140558"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("testcases"));
+
+		then(testCaseService).should().getTestCasesPage(eq(Project.B2C), eq(Optional.of(1140558L)), eq(0));
 	}
 
 	@Test

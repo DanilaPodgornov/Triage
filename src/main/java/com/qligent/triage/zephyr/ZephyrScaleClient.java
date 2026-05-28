@@ -33,7 +33,7 @@ public class ZephyrScaleClient {
 					return builder.build();
 				})
 				.retrieve()
-				.body(new org.springframework.core.ParameterizedTypeReference<ZephyrPage<TestCaseDto>>() {
+				.body(new org.springframework.core.ParameterizedTypeReference<>() {
 				});
 	}
 
@@ -45,7 +45,7 @@ public class ZephyrScaleClient {
 						.queryParam("maxResults", 100)
 						.build())
 				.retrieve()
-				.body(new org.springframework.core.ParameterizedTypeReference<ZephyrPage<PriorityDto>>() {
+				.body(new org.springframework.core.ParameterizedTypeReference<>() {
 				});
 	}
 

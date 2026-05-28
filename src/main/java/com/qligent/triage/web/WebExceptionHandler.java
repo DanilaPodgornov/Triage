@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 public class WebExceptionHandler {
 
 	@ExceptionHandler(RestClientException.class)
-	public String handleZephyrApiError(RestClientException exception, HttpServletRequest request, Model model) {
+	public String handleZephyrApiError(HttpServletRequest request, Model model) {
 		prepareErrorModel(request, model, "Failed to load data from Zephyr Scale API. Check API token and connectivity.");
 		return "error";
 	}
