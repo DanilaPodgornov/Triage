@@ -10,14 +10,14 @@
     <script th:src="@{/js/theme.js}" defer></script>
     <script th:if="${includeTestCasesJs}" th:src="@{/js/testcases.js}" defer></script>
 </head>
-<body>
+<body th:classappend="${activeTab == 'testcases'} ? 'page-testcases' : ''">
 <header class="app-header">
     <h1>Triage</h1>
 </header>
 
-<nav th:replace="~{fragments/tabs :: tabs}"></nav>
+<nav class="app-nav" th:replace="~{fragments/tabs :: tabs}"></nav>
 
-<section th:replace="~{fragments/global-filters :: filters}"></section>
+<section class="app-section" th:replace="~{fragments/global-filters :: filters}"></section>
 
 <main class="app-main">
     <div th:if="${error}" class="error-banner" th:text="${error}"></div>

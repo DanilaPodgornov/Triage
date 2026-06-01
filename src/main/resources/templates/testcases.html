@@ -2,110 +2,132 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: layout(~{::main-content}, null, true)}">
 <th:block th:fragment="main-content">
-    <section class="tab-content" id="testcases-app" th:attr="data-project=${project}">
-        <div class="actions">
-            <button type="button" id="select-all-btn" class="btn btn-secondary"
-                    th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}">Select All</button>
-            <button type="button" id="prioritize-btn" class="btn btn-primary" disabled>Prioritize</button>
-            <span id="selection-count" class="selection-count"></span>
-        </div>
+    <div class="testcases-page" id="testcases-app" th:attr="data-project=${project}">
+        <header class="testcases-page__header">
+            <div class="actions">
+                <button type="button" id="select-all-btn" class="btn btn-secondary"
+                        th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}">Select All</button>
+                <button type="button" id="prioritize-btn" class="btn btn-primary" disabled>Prioritize</button>
+                <span id="selection-count" class="selection-count"></span>
+            </div>
+        </header>
 
-        <form class="local-filters" method="get" th:action="@{/testcases}">
-            <input type="hidden" name="project" th:value="${project}">
-            <input type="hidden" name="page" value="0">
+        <main class="testcases-page__main">
+            <div class="testcases-page__list">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th class="col-checkbox"></th>
+                        <th class="col-key">Key</th>
+                        <th class="col-priority">Priority</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-folder">Folder</th>
+                        <th class="col-name">Name</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(pageView.testCases)}">
+                        <td colspan="6" class="empty-row">No test cases found.</td>
+                    </tr>
+                    <tr th:each="testCase : ${pageView.testCases}">
+                        <td class="col-checkbox">
+                            <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}"
+                                   th:value="${testCase.key}">
+                            <label class="sr-only" th:for="'tc-' + ${testCase.key}"
+                                   th:text="'Select test case ' + ${testCase.key}">Select test case</label>
+                        </td>
+                        <td class="col-key" th:text="${testCase.key}"></td>
+                        <td class="col-priority" th:text="${testCase.priority}"></td>
+                        <td class="col-status" th:text="${testCase.status}"></td>
+                        <td class="col-folder" th:text="${testCase.folder}"></td>
+                        <td class="col-name" th:text="${testCase.name}"></td>
+                    </tr>
+                    </tbody>
+                </table>
 
-            <label for="priority-filter">Priority</label>
-            <select id="priority-filter" name="priority" onchange="this.form.submit()">
-                <option value="">All priorities</option>
-                <option th:each="option : ${pageView.priorities}"
-                        th:value="${option.id}"
-                        th:text="${option.name}"
-                        th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
-                </option>
-            </select>
+                <nav class="pagination" th:if="${pageView.totalItems > 0}" aria-label="Test cases pagination">
+                    <a th:if="${pageView.currentPage > 0}"
+                       th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage - 1})}"
+                       class="pagination-link">Previous</a>
 
-            <label for="folder-filter">Folder</label>
-            <select id="folder-filter" name="folder" onchange="this.form.submit()">
-                <option value="">All folders</option>
-                <option th:each="option : ${pageView.folders}"
-                        th:value="${option.id}"
-                        th:text="${option.name}"
-                        th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
-                </option>
-            </select>
+                    <span class="pagination-info"
+                          th:text="'Page ' + (${pageView.currentPage} + 1) + ' of ' + ${pageView.totalPages}
+                            + ' (' + ${pageView.totalItems} + ' items)'">
+                    </span>
 
-            <label for="status-filter">Status</label>
-            <select id="status-filter" name="status" onchange="this.form.submit()">
-                <option value="">All statuses</option>
-                <option th:each="option : ${pageView.statuses}"
-                        th:value="${option.id}"
-                        th:text="${option.name}"
-                        th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
-                </option>
-            </select>
+                    <a th:if="${!pageView.lastPage}"
+                       th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage + 1})}"
+                       class="pagination-link">Next</a>
+                </nav>
+            </div>
 
-            <label for="sort-filter">Sort by</label>
-            <select id="sort-filter" name="sort" onchange="this.form.submit()">
-                <option value="key" th:selected="${pageView.sort.name() == 'KEY'}">Key</option>
-                <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}">Priority</option>
-                <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}">Folder</option>
-                <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}">Status</option>
-            </select>
+            <aside class="testcases-page__sidebar">
+                <section class="testcases-page__filters" aria-labelledby="testcases-filters-heading">
+                    <h2 id="testcases-filters-heading" class="testcases-panel__title">Filters</h2>
+                    <form class="local-filters local-filters--stacked" method="get" th:action="@{/testcases}">
+                        <input type="hidden" name="project" th:value="${project}">
+                        <input type="hidden" name="page" value="0">
 
-            <label for="dir-filter">Order</label>
-            <select id="dir-filter" name="dir" onchange="this.form.submit()">
-                <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}">Ascending</option>
-                <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}">Descending</option>
-            </select>
-        </form>
+                        <label for="priority-filter">Priority</label>
+                        <select id="priority-filter" name="priority" onchange="this.form.submit()">
+                            <option value="">All priorities</option>
+                            <option th:each="option : ${pageView.priorities}"
+                                    th:value="${option.id}"
+                                    th:text="${option.name}"
+                                    th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
+                            </option>
+                        </select>
 
-        <table class="data-table">
-            <thead>
-            <tr>
-                <th class="col-checkbox"></th>
-                <th class="col-key">Key</th>
-                <th class="col-priority">Priority</th>
-                <th class="col-status">Status</th>
-                <th class="col-folder">Folder</th>
-                <th class="col-name">Name</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:if="${#lists.isEmpty(pageView.testCases)}">
-                <td colspan="6" class="empty-row">No test cases found.</td>
-            </tr>
-            <tr th:each="testCase : ${pageView.testCases}">
-                <td class="col-checkbox">
-                    <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}" th:value="${testCase.key}">
-                    <label class="sr-only" th:for="'tc-' + ${testCase.key}" th:text="'Select test case ' + ${testCase.key}">Select test case</label>
-                </td>
-                <td class="col-key" th:text="${testCase.key}"></td>
-                <td class="col-priority" th:text="${testCase.priority}"></td>
-                <td class="col-status" th:text="${testCase.status}"></td>
-                <td class="col-folder" th:text="${testCase.folder}"></td>
-                <td class="col-name" th:text="${testCase.name}"></td>
-            </tr>
-            </tbody>
-        </table>
+                        <label for="folder-filter">Folder</label>
+                        <select id="folder-filter" name="folder" onchange="this.form.submit()">
+                            <option value="">All folders</option>
+                            <option th:each="option : ${pageView.folders}"
+                                    th:value="${option.id}"
+                                    th:text="${option.name}"
+                                    th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
+                            </option>
+                        </select>
 
-        <nav class="pagination" th:if="${pageView.totalItems > 0}">
-            <a th:if="${pageView.currentPage > 0}"
-               th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage - 1})}"
-               class="pagination-link">Previous</a>
+                        <label for="status-filter">Status</label>
+                        <select id="status-filter" name="status" onchange="this.form.submit()">
+                            <option value="">All statuses</option>
+                            <option th:each="option : ${pageView.statuses}"
+                                    th:value="${option.id}"
+                                    th:text="${option.name}"
+                                    th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
+                            </option>
+                        </select>
 
-            <span class="pagination-info"
-                  th:text="'Page ' + (${pageView.currentPage} + 1) + ' of ' + ${pageView.totalPages}
-                    + ' (' + ${pageView.totalItems} + ' items)'">
-            </span>
+                        <label for="sort-filter">Sort by</label>
+                        <select id="sort-filter" name="sort" onchange="this.form.submit()">
+                            <option value="key" th:selected="${pageView.sort.name() == 'KEY'}">Key</option>
+                            <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}">Priority</option>
+                            <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}">Folder</option>
+                            <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}">Status</option>
+                        </select>
 
-            <a th:if="${!pageView.lastPage}"
-               th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage + 1})}"
-               class="pagination-link">Next</a>
-        </nav>
+                        <label for="dir-filter">Order</label>
+                        <select id="dir-filter" name="dir" onchange="this.form.submit()">
+                            <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}">Ascending</option>
+                            <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}">Descending</option>
+                        </select>
+                    </form>
+                </section>
 
-        <script th:inline="javascript">
-            window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
-        </script>
-    </section>
+                <section class="testcases-page__llm" aria-labelledby="testcases-llm-heading">
+                    <h2 id="testcases-llm-heading" class="testcases-panel__title">Local LLM</h2>
+                    <label for="llm-query">Query</label>
+                    <textarea id="llm-query" class="llm-query-field" rows="8"
+                              placeholder="Ask the local model about selected test cases…"
+                              aria-disabled="true" tabindex="-1"></textarea>
+                    <p class="field-hint">Not connected yet — coming in a later release.</p>
+                </section>
+            </aside>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
+    </script>
 </th:block>
 </html>
