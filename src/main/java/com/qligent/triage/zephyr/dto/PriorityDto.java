@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PriorityDto(
 		long id,
-		String name
+		String name,
+		String color
 ) {
 }

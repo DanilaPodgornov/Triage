@@ -19,7 +19,7 @@ class SuggestedTestCycleStorageFilterTest {
 	@Test
 	void shouldFindCycleByTestCasePrefixWhenLlmReturnedPlaceholderKey() {
 		var storage = new SuggestedTestCycleStorage(
-				new TriageProperties(tempDir.resolve("cycles.json").toString(), null),
+				new TriageProperties(tempDir.resolve("cycles.json").toString(), null, null),
 				new ObjectMapper());
 		storage.add(SuggestedTestCycle.create(
 				"PROJECT-SR4",

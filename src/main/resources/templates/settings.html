@@ -3,24 +3,44 @@
       th:replace="~{layout :: layout(~{::main-content}, ${pageTitle}, false)}">
 <th:block th:fragment="main-content">
     <section class="tab-content settings-content">
-        <h2 class="settings-heading">Appearance</h2>
+        <h2 class="settings-heading" data-i18n="settings.appearance">Appearance</h2>
         <form id="theme-settings" class="settings-form">
             <fieldset class="theme-options">
                 <legend class="sr-only">Theme</legend>
                 <label class="theme-option">
                     <input type="radio" name="theme" value="dark">
-                    <span>Темный</span>
+                    <span data-i18n="settings.theme.dark">Dark</span>
                 </label>
                 <label class="theme-option">
                     <input type="radio" name="theme" value="light">
-                    <span>Светлый</span>
+                    <span data-i18n="settings.theme.light">Light</span>
                 </label>
                 <label class="theme-option">
                     <input type="radio" name="theme" value="system">
-                    <span>Как у пользователя в системе</span>
+                    <span data-i18n="settings.theme.system">Match system</span>
                 </label>
             </fieldset>
-            <p class="settings-hint">Theme preference is stored in this browser only.</p>
+            <p class="settings-hint" data-i18n="settings.themeHint">Theme preference is stored in this browser only.</p>
+        </form>
+
+        <h2 class="settings-heading" data-i18n="settings.language">Language</h2>
+        <form id="locale-settings" class="settings-form">
+            <fieldset class="theme-options">
+                <legend class="sr-only">Language</legend>
+                <label class="theme-option">
+                    <input type="radio" name="locale" value="ru">
+                    <span data-i18n="settings.locale.ru">Russian</span>
+                </label>
+                <label class="theme-option">
+                    <input type="radio" name="locale" value="en">
+                    <span data-i18n="settings.locale.en">English</span>
+                </label>
+                <label class="theme-option">
+                    <input type="radio" name="locale" value="system">
+                    <span data-i18n="settings.locale.system">Match system</span>
+                </label>
+            </fieldset>
+            <p class="settings-hint" data-i18n="settings.localeHint">Language preference is stored in this browser only.</p>
         </form>
     </section>
 </th:block>

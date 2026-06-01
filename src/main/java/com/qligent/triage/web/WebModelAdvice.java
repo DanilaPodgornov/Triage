@@ -26,4 +26,9 @@ public class WebModelAdvice {
 		return triageProperties.theme().defaultTheme();
 	}
 
+	@ModelAttribute("defaultLocale")
+	String defaultLocale() {
+		return triageProperties.locale().defaultLocale();
+	}
+
 }

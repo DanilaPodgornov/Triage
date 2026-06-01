@@ -41,7 +41,7 @@ class PrioritizationServiceTest {
 	@BeforeEach
 	void setUp(@org.junit.jupiter.api.io.TempDir java.nio.file.Path tempDir) {
 		storage = new SuggestedTestCycleStorage(
-				new TriageProperties(tempDir.resolve("suggestedTestCycles.json").toString(), null),
+				new TriageProperties(tempDir.resolve("suggestedTestCycles.json").toString(), null, null),
 				new ObjectMapper());
 		prioritizationService = new PrioritizationService(
 				enrichmentService,

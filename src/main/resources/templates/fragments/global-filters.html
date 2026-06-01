@@ -1,9 +1,13 @@
-<section class="global-filters" xmlns:th="http://www.thymeleaf.org" th:fragment="filters">
-    <form method="get" th:action="${currentPath}" class="filter-form">
-        <label for="project-filter">Project</label>
-        <select id="project-filter" name="project" onchange="this.form.submit()">
-            <option value="B2C" th:selected="${project == 'B2C'}">B2C</option>
-            <option value="B2B" th:selected="${project == 'B2B'}">B2B</option>
-        </select>
-    </form>
+<section class="app-section" xmlns:th="http://www.thymeleaf.org" th:fragment="filters">
+    <div class="container">
+        <div class="global-filters">
+            <form method="get" th:action="${currentPath}" class="filter-form">
+                <label for="project-filter" data-i18n="filter.project">Project</label>
+                <select id="project-filter" name="project" onchange="this.form.submit()">
+                    <option value="B2C" th:selected="${project == 'B2C'}">B2C</option>
+                    <option value="B2B" th:selected="${project == 'B2B'}">B2B</option>
+                </select>
+            </form>
+        </div>
+    </div>
 </section>

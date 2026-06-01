@@ -6,14 +6,14 @@
         <table class="data-table">
             <thead>
             <tr>
-                <th class="col-key">Key</th>
-                <th class="col-name">Name</th>
-                <th class="col-status">Status</th>
+                <th class="col-key" data-i18n="suggested.col.key">Key</th>
+                <th class="col-name" data-i18n="suggested.col.name">Name</th>
+                <th class="col-status" data-i18n="suggested.col.status">Status</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${#lists.isEmpty(cycles)}">
-                <td colspan="3" class="empty-row">No suggested test cycles yet. Select test cases and click Prioritize.</td>
+                <td colspan="3" class="empty-row" data-i18n="suggested.empty">No suggested test cycles yet.</td>
             </tr>
             <tr th:each="cycle : ${cycles}">
                 <td class="col-key">

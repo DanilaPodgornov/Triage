@@ -95,7 +95,7 @@ class TestCaseServiceTest {
 
 	private ZephyrPage<PriorityDto> prioritiesPage() {
 		return new ZephyrPage<>(null, 0, 100, 2, true,
-				List.of(new PriorityDto(1L, "Normal"), new PriorityDto(2L, "High")));
+				List.of(new PriorityDto(1L, "Normal", "#808080"), new PriorityDto(2L, "High", "#ff0000")));
 	}
 
 	private ZephyrPage<FolderDto> emptyFoldersPage() {

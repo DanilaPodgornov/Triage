@@ -57,6 +57,7 @@ class WebControllersTest {
 	@BeforeEach
 	void stubThemeDefaults() {
 		given(triageProperties.theme()).willReturn(new TriageProperties.Theme("system"));
+		given(triageProperties.locale()).willReturn(new TriageProperties.Locale("en"));
 	}
 
 	@Test
@@ -78,7 +79,7 @@ class WebControllersTest {
 				null,
 				TestCaseSort.KEY,
 				SortDirection.ASC,
-				List.of(new TestCaseView("SQM-T1", "Normal", "Approved", "Folder A", "Sample test case")),
+				List.of(new TestCaseView("SQM-T1", "Normal", "#ff0000", "#ffffff", "Approved", "Folder A", "Sample test case")),
 				List.of("SQM-T1"),
 				0,
 				10,
@@ -150,8 +151,9 @@ class WebControllersTest {
 		mockMvc.perform(get("/settings").param("project", "B2C"))
 				.andExpect(status().isOk())
 				.andExpect(view().name("settings"))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Темный")))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-default-theme=\"system\"")));
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Dark")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-default-theme=\"system\"")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-default-locale=\"en\"")));
 	}
 
 	@Test

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.qligent.triage.config.ZephyrProperties;
 import com.qligent.triage.model.Project;
+import com.qligent.triage.util.ColorContrast;
 import com.qligent.triage.web.model.FilterOption;
 import com.qligent.triage.web.model.TestCaseView;
 import com.qligent.triage.web.model.TestCasesPageView;
@@ -40,6 +41,7 @@ public class TestCaseService {
 		List<FilterOption> statuses = loadStatuses(projectKey);
 
 		Map<Long, String> priorityNames = toNameMap(priorities);
+		Map<Long, String> priorityColors = toColorMap(priorities);
 		Map<Long, String> folderNames = toNameMap(folders);
 		Map<Long, String> statusNames = toNameMap(statuses);
 
@@ -72,7 +74,7 @@ public class TestCaseService {
 		List<String> allMatchingTestCaseKeys = allMatching.stream().map(TestCaseDto::key).toList();
 
 		List<TestCaseView> testCases = sourceCases.stream()
-				.map(toView(priorityNames, folderNames, statusNames))
+				.map(toView(priorityNames, priorityColors, folderNames, statusNames))
 				.toList();
 
 		int totalPages = computeTotalPages(totalItems, pageSize);
@@ -157,6 +159,12 @@ public class TestCaseService {
 		return options.stream().collect(Collectors.toMap(FilterOption::id, FilterOption::name));
 	}
 
+	private Map<Long, String> toColorMap(List<FilterOption> options) {
+		return options.stream()
+				.filter(option -> option.color() != null && !option.color().isBlank())
+				.collect(Collectors.toMap(FilterOption::id, FilterOption::color));
+	}
+
 	private List<TestCaseDto> loadAllTestCases(String projectKey) {
 		List<TestCaseDto> allCases = new ArrayList<>();
 		int startAt = 0;
@@ -183,14 +191,14 @@ public class TestCaseService {
 	private List<FilterOption> loadFolders(String projectKey) {
 		return loadAllPages(projectKey, zephyrScaleClient::getFolders).stream()
 				.filter(folder -> folder.folderType() == null || "TEST_CASE".equals(folder.folderType()))
-				.map(folder -> new FilterOption(folder.id(), folder.name()))
+				.map(folder -> FilterOption.of(folder.id(), folder.name()))
 				.sorted(Comparator.comparing(FilterOption::name, String.CASE_INSENSITIVE_ORDER))
 				.toList();
 	}
 
 	private List<FilterOption> loadStatuses(String projectKey) {
 		return loadAllPages(projectKey, zephyrScaleClient::getStatuses).stream()
-				.map(status -> new FilterOption(status.id(), status.name()))
+				.map(status -> FilterOption.of(status.id(), status.name()))
 				.sorted(Comparator.comparing(FilterOption::name, String.CASE_INSENSITIVE_ORDER))
 				.toList();
 	}
@@ -216,22 +224,28 @@ public class TestCaseService {
 			return List.of();
 		}
 		return response.values().stream()
-				.map(priority -> new FilterOption(priority.id(), priority.name()))
+				.map(priority -> new FilterOption(priority.id(), priority.name(), priority.color()))
 				.sorted(Comparator.comparing(FilterOption::name, String.CASE_INSENSITIVE_ORDER))
 				.toList();
 	}
 
 	private Function<TestCaseDto, TestCaseView> toView(
 			Map<Long, String> priorityNames,
+			Map<Long, String> priorityColors,
 			Map<Long, String> folderNames,
 			Map<Long, String> statusNames) {
 		return testCase -> {
 			long priorityRefId = testCase.priority() != null ? testCase.priority().id() : 0L;
 			long statusRefId = testCase.status() != null ? testCase.status().id() : 0L;
 			long folderRefId = testCase.folder() != null ? testCase.folder().id() : 0L;
+			String priorityName = priorityNames.getOrDefault(priorityRefId, "—");
+			String priorityColor = priorityColors.get(priorityRefId);
+			String priorityTextColor = ColorContrast.textColorForBackground(priorityColor);
 			return new TestCaseView(
 					testCase.key(),
-					priorityNames.getOrDefault(priorityRefId, "—"),
+					priorityName,
+					priorityColor,
+					priorityTextColor,
 					statusNames.getOrDefault(statusRefId, "—"),
 					folderNames.getOrDefault(folderRefId, "—"),
 					testCase.name());

@@ -1,27 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs)"
-      th:attr="data-default-theme=${defaultTheme}">
+      th:attr="data-default-theme=${defaultTheme}, data-default-locale=${defaultLocale}">
 <head>
     <meta charset="UTF-8">
     <meta name="color-scheme" content="light dark">
     <title th:text="${pageTitle != null ? pageTitle + ' — Triage' : 'Triage'}">Triage</title>
     <script th:src="@{/js/theme-init.js}"></script>
+    <script th:src="@{/js/locale-init.js}"></script>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/i18n.js}" defer></script>
     <script th:src="@{/js/theme.js}" defer></script>
     <script th:if="${includeTestCasesJs}" th:src="@{/js/testcases.js}" defer></script>
 </head>
-<body th:classappend="${activeTab == 'testcases'} ? 'page-testcases' : ''">
+<body>
 <header class="app-header">
-    <h1>Triage</h1>
+    <div class="container">
+        <h1>Triage</h1>
+    </div>
 </header>
 
-<nav class="app-nav" th:replace="~{fragments/tabs :: tabs}"></nav>
+<nav th:replace="~{fragments/tabs :: tabs}"></nav>
 
-<section class="app-section" th:replace="~{fragments/global-filters :: filters}"></section>
+<section th:replace="~{fragments/global-filters :: filters}"></section>
 
 <main class="app-main">
-    <div th:if="${error}" class="error-banner" th:text="${error}"></div>
-    <th:block th:replace="${content}"></th:block>
+    <div class="container">
+        <div th:if="${error}" class="error-banner" th:text="${error}"></div>
+        <th:block th:replace="${content}"></th:block>
+    </div>
 </main>
 </body>
 </html>

@@ -1,14 +1,18 @@
-<nav class="tabs" xmlns:th="http://www.thymeleaf.org" th:fragment="tabs">
-    <a th:href="@{/testcases(project=${project})}"
-       th:classappend="${activeTab == 'testcases'} ? 'active' : ''"
-       class="tab-link">Test Cases</a>
-    <a th:href="@{/testcycles(project=${project})}"
-       th:classappend="${activeTab == 'testcycles'} ? 'active' : ''"
-       class="tab-link">Test Cycles</a>
-    <a th:href="@{/suggestedcycles(project=${project})}"
-       th:classappend="${activeTab == 'suggestedcycles'} ? 'active' : ''"
-       class="tab-link">Suggested Test Cycles</a>
-    <a th:href="@{/settings(project=${project})}"
-       th:classappend="${activeTab == 'settings'} ? 'active' : ''"
-       class="tab-link">Settings</a>
+<nav class="app-nav" xmlns:th="http://www.thymeleaf.org" th:fragment="tabs">
+    <div class="container">
+        <div class="tabs">
+            <a th:href="@{/testcases(project=${project})}"
+               th:classappend="${activeTab == 'testcases'} ? 'active' : ''"
+               class="tab-link" data-i18n="nav.testCases">Test Cases</a>
+            <a th:href="@{/testcycles(project=${project})}"
+               th:classappend="${activeTab == 'testcycles'} ? 'active' : ''"
+               class="tab-link" data-i18n="nav.testCycles">Test Cycles</a>
+            <a th:href="@{/suggestedcycles(project=${project})}"
+               th:classappend="${activeTab == 'suggestedcycles'} ? 'active' : ''"
+               class="tab-link" data-i18n="nav.suggestedCycles">Suggested Test Cycles</a>
+            <a th:href="@{/settings(project=${project})}"
+               th:classappend="${activeTab == 'settings'} ? 'active' : ''"
+               class="tab-link" data-i18n="nav.settings">Settings</a>
+        </div>
+    </div>
 </nav>
