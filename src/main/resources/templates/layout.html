@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs)">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs)"
+      th:attr="data-default-theme=${defaultTheme}">
 <head>
     <meta charset="UTF-8">
+    <meta name="color-scheme" content="light dark">
     <title th:text="${pageTitle != null ? pageTitle + ' — Triage' : 'Triage'}">Triage</title>
+    <script th:src="@{/js/theme-init.js}"></script>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:src="@{/js/theme.js}" defer></script>
     <script th:if="${includeTestCasesJs}" th:src="@{/js/testcases.js}" defer></script>
 </head>
 <body>

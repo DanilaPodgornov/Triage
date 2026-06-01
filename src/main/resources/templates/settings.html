@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, ${pageTitle}, false)}">
+<th:block th:fragment="main-content">
+    <section class="tab-content settings-content">
+        <h2 class="settings-heading">Appearance</h2>
+        <form id="theme-settings" class="settings-form">
+            <fieldset class="theme-options">
+                <legend class="sr-only">Theme</legend>
+                <label class="theme-option">
+                    <input type="radio" name="theme" value="dark">
+                    <span>Темный</span>
+                </label>
+                <label class="theme-option">
+                    <input type="radio" name="theme" value="light">
+                    <span>Светлый</span>
+                </label>
+                <label class="theme-option">
+                    <input type="radio" name="theme" value="system">
+                    <span>Как у пользователя в системе</span>
+                </label>
+            </fieldset>
+            <p class="settings-hint">Theme preference is stored in this browser only.</p>
+        </form>
+    </section>
+</th:block>
+</html>

@@ -19,3 +19,5 @@ llm:
 
 triage:
   suggested-cycles-file: suggestedTestCycles.json
+  theme:
+    default-theme: system

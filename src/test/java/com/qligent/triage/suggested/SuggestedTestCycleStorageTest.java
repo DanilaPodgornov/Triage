@@ -19,7 +19,7 @@ class SuggestedTestCycleStorageTest {
 	@Test
 	void shouldPersistAndLoadSuggestedCycles() {
 		Path file = tempDir.resolve("suggestedTestCycles.json");
-		var storage = new SuggestedTestCycleStorage(new TriageProperties(file.toString()), new ObjectMapper());
+		var storage = new SuggestedTestCycleStorage(new TriageProperties(file.toString(), null), new ObjectMapper());
 
 		storage.add(SuggestedTestCycle.create("SQM-SR1", "Cycle 1", java.util.List.of("SQM-T1", "SQM-T2")));
 
@@ -32,7 +32,7 @@ class SuggestedTestCycleStorageTest {
 	@Test
 	void shouldGenerateNextSuggestedCycleKey() {
 		Path file = tempDir.resolve("suggestedTestCycles.json");
-		var storage = new SuggestedTestCycleStorage(new TriageProperties(file.toString()), new ObjectMapper());
+		var storage = new SuggestedTestCycleStorage(new TriageProperties(file.toString(), null), new ObjectMapper());
 		storage.add(SuggestedTestCycle.create("SQM-SR1", "Cycle 1", java.util.List.of("SQM-T1")));
 
 		assertThat(storage.nextSuggestedCycleKey("SQM")).isEqualTo("SQM-SR2");

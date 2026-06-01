@@ -46,6 +46,9 @@ public class WebExceptionHandler {
 		if (requestUri.contains("/suggestedcycles")) {
 			return "suggestedcycles";
 		}
+		if (requestUri.contains("/settings")) {
+			return "settings";
+		}
 		return "testcases";
 	}
 

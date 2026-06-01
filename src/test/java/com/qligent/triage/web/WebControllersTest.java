@@ -13,6 +13,7 @@ import static org.mockito.BDDMockito.then;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.qligent.triage.config.TriageProperties;
 import com.qligent.triage.model.Project;
 import com.qligent.triage.service.SortDirection;
 import com.qligent.triage.service.TestCaseListQuery;
@@ -34,7 +36,8 @@ import com.qligent.triage.web.model.TestCasesPageView;
 		HomeController.class,
 		TestCaseController.class,
 		StubTabController.class,
-		SuggestedTestCycleController.class
+		SuggestedTestCycleController.class,
+		SettingsController.class
 })
 @Import({ WebModelAdvice.class, WebExceptionHandler.class })
 class WebControllersTest {
@@ -47,6 +50,14 @@ class WebControllersTest {
 
 	@MockitoBean
 	private SuggestedTestCycleService suggestedTestCycleService;
+
+	@MockitoBean
+	private TriageProperties triageProperties;
+
+	@BeforeEach
+	void stubThemeDefaults() {
+		given(triageProperties.theme()).willReturn(new TriageProperties.Theme("system"));
+	}
 
 	@Test
 	void rootRedirectsToB2CTestCases() throws Exception {
@@ -132,6 +143,15 @@ class WebControllersTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("stub-tab"))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("under development")));
+	}
+
+	@Test
+	void settingsPageRenders() throws Exception {
+		mockMvc.perform(get("/settings").param("project", "B2C"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("settings"))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Темный")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-default-theme=\"system\"")));
 	}
 
 	@Test

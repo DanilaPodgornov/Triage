@@ -8,4 +8,7 @@
     <a th:href="@{/suggestedcycles(project=${project})}"
        th:classappend="${activeTab == 'suggestedcycles'} ? 'active' : ''"
        class="tab-link">Suggested Test Cycles</a>
+    <a th:href="@{/settings(project=${project})}"
+       th:classappend="${activeTab == 'settings'} ? 'active' : ''"
+       class="tab-link">Settings</a>
 </nav>
