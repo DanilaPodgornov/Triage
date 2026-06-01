@@ -26,7 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return `triage-testcase-selection:${query}`;
     }
 
-    function loadSelection() {
+    function isPageReload() {
+        const navigationEntry = performance.getEntriesByType('navigation')[0];
+        return navigationEntry?.type === 'reload';
+    }
+
+    function clearStoredSelection() {
+        sessionStorage.removeItem(storageKey);
+        sessionStorage.removeItem(`triage-testcase-selection:${window.location.search}`);
+    }
+
+    function readStoredSelection() {
         try {
             let stored = sessionStorage.getItem(storageKey);
             if (!stored) {
@@ -38,13 +48,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             if (!stored) {
-                return new Set();
+                return [];
             }
             const parsed = JSON.parse(stored);
-            return new Set(Array.isArray(parsed) ? parsed : []);
+            return Array.isArray(parsed) ? parsed : [];
         } catch {
+            return [];
+        }
+    }
+
+    function loadSelection() {
+        if (isPageReload()) {
+            clearStoredSelection();
             return new Set();
         }
+        return new Set(readStoredSelection());
     }
 
     function saveSelection() {
@@ -127,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            sessionStorage.removeItem(storageKey);
+            clearStoredSelection();
             window.location.href = result.redirectUrl;
         } catch (error) {
             console.error(error);
