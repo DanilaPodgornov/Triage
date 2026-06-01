@@ -22,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.qligent.triage.config.TriageProperties;
+import com.qligent.triage.llm.LlmPromptTemplateService;
 import com.qligent.triage.model.Project;
 import com.qligent.triage.service.SortDirection;
 import com.qligent.triage.service.TestCaseListQuery;
@@ -54,10 +55,14 @@ class WebControllersTest {
 	@MockitoBean
 	private TriageProperties triageProperties;
 
+	@MockitoBean
+	private LlmPromptTemplateService llmPromptTemplateService;
+
 	@BeforeEach
 	void stubThemeDefaults() {
 		given(triageProperties.theme()).willReturn(new TriageProperties.Theme("system"));
 		given(triageProperties.locale()).willReturn(new TriageProperties.Locale("en"));
+		given(llmPromptTemplateService.getTemplate()).willReturn("Default prompt {inputKeys} {testCasesJson}");
 	}
 
 	@Test
@@ -93,7 +98,8 @@ class WebControllersTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("testcases"))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("SQM-T1")))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Prioritize")));
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Prioritize")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Default prompt {inputKeys}")));
 	}
 
 	@Test

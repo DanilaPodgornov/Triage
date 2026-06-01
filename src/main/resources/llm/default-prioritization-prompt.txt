@@ -1,0 +1,17 @@
+You are a QA triage assistant. Rank the following test cases by execution priority (highest priority first) using metadata and recent execution history.
+
+Input test case keys: {inputKeys}
+
+Test case data (JSON):
+{testCasesJson}
+
+Respond with JSON only, matching this schema exactly:
+{
+  "suggestedTestCycleName": "short descriptive cycle name",
+  "testCases": ["KEY1", "KEY2"]
+}
+
+Rules:
+- testCases must include every input key exactly once
+- order from highest to lowest execution priority
+- do not include suggestedTestCycleKey (it is assigned by the application)

@@ -152,12 +152,16 @@
 
                 <section class="testcases-page__llm" aria-labelledby="testcases-llm-heading">
                     <h2 id="testcases-llm-heading" class="testcases-panel__title" data-i18n="testcases.llm">Local LLM</h2>
-                    <label for="llm-query" data-i18n="testcases.llmQuery">Query</label>
-                    <textarea id="llm-query" class="llm-query-field" rows="8"
-                              data-i18n-placeholder="testcases.llmPlaceholder"
-                              placeholder="Ask the local model about selected test cases…"
-                              aria-disabled="true" tabindex="-1"></textarea>
-                    <p class="field-hint" data-i18n="testcases.llmHint">Not connected yet — coming in a later release.</p>
+                    <label for="llm-prompt" data-i18n="testcases.llmPrompt">Prompt</label>
+                    <textarea id="llm-prompt" class="llm-query-field" rows="12" spellcheck="false"
+                              th:text="${defaultLlmPrompt}"></textarea>
+                    <div class="llm-prompt-actions">
+                        <button type="button" id="llm-prompt-reset-btn" class="btn btn-secondary"
+                                data-i18n="testcases.llmReset">Reset default prompt</button>
+                        <button type="button" id="llm-prompt-download-btn" class="btn btn-secondary"
+                                data-i18n="testcases.llmDownload">Download prompt</button>
+                    </div>
+                    <p class="field-hint" data-i18n="testcases.llmHint">Edits are stored in this browser only. Prioritize still uses the server default prompt.</p>
                 </section>
             </aside>
         </main>
@@ -165,6 +169,7 @@
 
     <script th:inline="javascript">
         window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
+        window.__defaultLlmPrompt = /*[[${defaultLlmPrompt}]]*/ '';
     </script>
 </th:block>
 </html>

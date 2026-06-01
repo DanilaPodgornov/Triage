@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.qligent.triage.llm.LlmPromptTemplateService;
 import com.qligent.triage.model.Project;
 import com.qligent.triage.service.SortDirection;
 import com.qligent.triage.service.TestCaseListQuery;
@@ -17,9 +18,11 @@ import com.qligent.triage.service.TestCaseSort;
 public class TestCaseController {
 
 	private final TestCaseService testCaseService;
+	private final LlmPromptTemplateService llmPromptTemplateService;
 
-	public TestCaseController(TestCaseService testCaseService) {
+	public TestCaseController(TestCaseService testCaseService, LlmPromptTemplateService llmPromptTemplateService) {
 		this.testCaseService = testCaseService;
+		this.llmPromptTemplateService = llmPromptTemplateService;
 	}
 
 	@GetMapping("/testcases")
@@ -45,6 +48,7 @@ public class TestCaseController {
 		model.addAttribute("activeTab", "testcases");
 		model.addAttribute("project", selectedProject.label());
 		model.addAttribute("pageView", pageView);
+		model.addAttribute("defaultLlmPrompt", llmPromptTemplateService.getTemplate());
 		return "testcases";
 	}
 

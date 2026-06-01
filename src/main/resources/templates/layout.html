@@ -10,6 +10,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script th:src="@{/js/i18n.js}" defer></script>
     <script th:src="@{/js/theme.js}" defer></script>
+    <script th:if="${includeTestCasesJs}" th:src="@{/js/llm-prompt.js}" defer></script>
     <script th:if="${includeTestCasesJs}" th:src="@{/js/testcases.js}" defer></script>
 </head>
 <body>

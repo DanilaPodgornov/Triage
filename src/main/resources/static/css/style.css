@@ -288,6 +288,13 @@ body {
     margin-bottom: 6px;
 }
 
+.llm-prompt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
 .testcases-table-scroll {
     width: 100%;
     overflow-x: hidden;
@@ -345,11 +352,6 @@ body {
     font-size: 13px;
     line-height: 1.45;
     resize: vertical;
-}
-
-.llm-query-field[aria-disabled="true"] {
-    cursor: not-allowed;
-    opacity: 0.85;
 }
 
 .field-hint {

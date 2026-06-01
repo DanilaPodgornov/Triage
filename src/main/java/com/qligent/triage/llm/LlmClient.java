@@ -18,11 +18,17 @@ public class LlmClient {
 	private final RestClient restClient;
 	private final LlmProperties properties;
 	private final ObjectMapper objectMapper;
+	private final LlmPromptTemplateService promptTemplateService;
 
-	public LlmClient(RestClient llmRestClient, LlmProperties properties, ObjectMapper objectMapper) {
+	public LlmClient(
+			RestClient llmRestClient,
+			LlmProperties properties,
+			ObjectMapper objectMapper,
+			LlmPromptTemplateService promptTemplateService) {
 		this.restClient = llmRestClient;
 		this.properties = properties;
 		this.objectMapper = objectMapper;
+		this.promptTemplateService = promptTemplateService;
 	}
 
 	public String helloOneWord() {
@@ -46,26 +52,7 @@ public class LlmClient {
 	}
 
 	public LlmPrioritizationResult prioritizeTestCases(String testCasesJson, List<String> inputKeys) {
-		String userPrompt = """
-				You are a QA triage assistant. Rank the following test cases by execution priority \
-				(highest priority first) using metadata and recent execution history.
-
-				Input test case keys: %s
-
-				Test case data (JSON):
-				%s
-
-				Respond with JSON only, matching this schema exactly:
-				{
-				  "suggestedTestCycleName": "short descriptive cycle name",
-				  "testCases": ["KEY1", "KEY2"]
-				}
-
-				Rules:
-				- testCases must include every input key exactly once
-				- order from highest to lowest execution priority
-				- do not include suggestedTestCycleKey (it is assigned by the application)
-				""".formatted(String.join(", ", inputKeys), testCasesJson);
+		String userPrompt = promptTemplateService.format(String.join(", ", inputKeys), testCasesJson);
 
 		var request = new OllamaChatRequest(
 				properties.model(),

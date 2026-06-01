@@ -16,6 +16,7 @@ zephyr:
 llm:
   base-url: http://localhost:11434
   model: qwen2.5:3b
+  default-prompt-location: classpath:llm/default-prioritization-prompt.txt
 
 triage:
   suggested-cycles-file: suggestedTestCycles.json
