@@ -11,12 +11,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const allMatchingKeys = Array.isArray(window.__allMatchingTestCaseKeys)
         ? window.__allMatchingTestCaseKeys
         : [];
-    const storageKey = `triage-testcase-selection:${window.location.search}`;
+    const storageKey = buildSelectionStorageKey();
     const selectedKeys = loadSelection();
+
+    function buildSelectionStorageKey() {
+        const params = new URLSearchParams(window.location.search);
+        params.delete('page');
+        const pairs = [];
+        params.forEach((value, key) => {
+            pairs.push([key, value]);
+        });
+        pairs.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+        const query = pairs.map(([key, value]) => `${key}=${value}`).join('&');
+        return `triage-testcase-selection:${query}`;
+    }
 
     function loadSelection() {
         try {
-            const stored = sessionStorage.getItem(storageKey);
+            let stored = sessionStorage.getItem(storageKey);
+            if (!stored) {
+                const legacyKey = `triage-testcase-selection:${window.location.search}`;
+                stored = sessionStorage.getItem(legacyKey);
+                if (stored) {
+                    sessionStorage.setItem(storageKey, stored);
+                    sessionStorage.removeItem(legacyKey);
+                }
+            }
             if (!stored) {
                 return new Set();
             }
