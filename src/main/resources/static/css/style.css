@@ -89,9 +89,17 @@ body {
 }
 
 .actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 16px;
     padding-bottom: 16px;
     border-bottom: 1px solid #e5e7eb;
+}
+
+.selection-count {
+    color: #6b7280;
+    font-size: 13px;
 }
 
 .btn {

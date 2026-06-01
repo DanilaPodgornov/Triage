@@ -44,35 +44,38 @@ public class TestCaseService {
 		Map<Long, String> statusNames = toNameMap(statuses);
 
 		int pageSize = properties.pageSize();
+		List<TestCaseDto> allMatching;
 		List<TestCaseDto> sourceCases;
 		int totalItems;
 		boolean lastPage;
 
 		if (query.requiresLocalProcessing()) {
-			List<TestCaseDto> filtered = loadAllTestCases(projectKey).stream()
+			allMatching = loadAllTestCases(projectKey).stream()
 					.filter(testCase -> matchesFilters(testCase, query))
 					.sorted(buildComparator(query, priorityNames, folderNames, statusNames))
 					.toList();
 
-			totalItems = filtered.size();
+			totalItems = allMatching.size();
 			int fromIndex = Math.min(query.page() * pageSize, totalItems);
 			int toIndex = Math.min(fromIndex + pageSize, totalItems);
-			sourceCases = filtered.subList(fromIndex, toIndex);
-			int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / pageSize);
-			lastPage = totalItems == 0 || query.page() >= totalPages - 1;
+			sourceCases = allMatching.subList(fromIndex, toIndex);
+			lastPage = totalItems == 0 || query.page() >= computeTotalPages(totalItems, pageSize) - 1;
 		} else {
 			int startAt = query.page() * pageSize;
 			var response = zephyrScaleClient.getTestCases(projectKey, startAt, pageSize, java.util.Optional.empty());
 			sourceCases = response.values() == null ? Collections.emptyList() : response.values();
+			allMatching = sourceCases;
 			totalItems = response.total();
 			lastPage = response.isLast();
 		}
+
+		List<String> allMatchingTestCaseKeys = allMatching.stream().map(TestCaseDto::key).toList();
 
 		List<TestCaseView> testCases = sourceCases.stream()
 				.map(toView(priorityNames, folderNames, statusNames))
 				.toList();
 
-		int totalPages = totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / pageSize);
+		int totalPages = computeTotalPages(totalItems, pageSize);
 
 		return new TestCasesPageView(
 				project,
@@ -85,12 +88,17 @@ public class TestCaseService {
 				query.sort(),
 				query.sortDirection(),
 				testCases,
+				allMatchingTestCaseKeys,
 				query.page(),
 				pageSize,
 				totalItems,
 				totalPages,
 				lastPage
 		);
+	}
+
+	private int computeTotalPages(int totalItems, int pageSize) {
+		return totalItems == 0 ? 1 : (int) Math.ceil((double) totalItems / pageSize);
 	}
 
 	private boolean matchesFilters(TestCaseDto testCase, TestCaseListQuery query) {

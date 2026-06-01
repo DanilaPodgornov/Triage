@@ -1,24 +1,91 @@
 document.addEventListener('DOMContentLoaded', () => {
     const app = document.getElementById('testcases-app');
-    const checkboxes = document.querySelectorAll('.testcase-checkbox');
     const prioritizeBtn = document.getElementById('prioritize-btn');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const selectionCountEl = document.getElementById('selection-count');
 
-    if (!prioritizeBtn || checkboxes.length === 0) {
+    if (!prioritizeBtn) {
         return;
     }
 
-    const updatePrioritizeButton = () => {
-        const selectedCount = document.querySelectorAll('.testcase-checkbox:checked').length;
-        prioritizeBtn.disabled = selectedCount < 2;
-    };
+    const allMatchingKeys = Array.isArray(window.__allMatchingTestCaseKeys)
+        ? window.__allMatchingTestCaseKeys
+        : [];
+    const storageKey = `triage-testcase-selection:${window.location.search}`;
+    const selectedKeys = loadSelection();
 
-    checkboxes.forEach(checkbox => checkbox.addEventListener('change', updatePrioritizeButton));
-    updatePrioritizeButton();
+    function loadSelection() {
+        try {
+            const stored = sessionStorage.getItem(storageKey);
+            if (!stored) {
+                return new Set();
+            }
+            const parsed = JSON.parse(stored);
+            return new Set(Array.isArray(parsed) ? parsed : []);
+        } catch {
+            return new Set();
+        }
+    }
+
+    function saveSelection() {
+        sessionStorage.setItem(storageKey, JSON.stringify([...selectedKeys]));
+    }
+
+    function syncCheckboxesFromSelection() {
+        document.querySelectorAll('.testcase-checkbox').forEach(checkbox => {
+            checkbox.checked = selectedKeys.has(checkbox.value);
+        });
+    }
+
+    function updateUi() {
+        const count = selectedKeys.size;
+        if (selectionCountEl) {
+            selectionCountEl.textContent = count > 0 ? `${count} selected` : '';
+        }
+        prioritizeBtn.disabled = count < 2;
+        if (selectAllBtn) {
+            const allSelected = allMatchingKeys.length > 0
+                && allMatchingKeys.every(key => selectedKeys.has(key));
+            selectAllBtn.disabled = allMatchingKeys.length === 0;
+            selectAllBtn.textContent = allSelected ? 'Deselect All' : 'Select All';
+        }
+    }
+
+    document.querySelectorAll('.testcase-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                selectedKeys.add(checkbox.value);
+            } else {
+                selectedKeys.delete(checkbox.value);
+            }
+            saveSelection();
+            updateUi();
+        });
+    });
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            const allSelected = allMatchingKeys.length > 0
+                && allMatchingKeys.every(key => selectedKeys.has(key));
+
+            if (allSelected) {
+                allMatchingKeys.forEach(key => selectedKeys.delete(key));
+            } else {
+                allMatchingKeys.forEach(key => selectedKeys.add(key));
+            }
+
+            syncCheckboxesFromSelection();
+            saveSelection();
+            updateUi();
+        });
+    }
+
+    syncCheckboxesFromSelection();
+    updateUi();
 
     prioritizeBtn.addEventListener('click', async () => {
         const project = app?.dataset.project || 'B2C';
-        const testCaseKeys = [...document.querySelectorAll('.testcase-checkbox:checked')]
-            .map(checkbox => checkbox.value);
+        const testCaseKeys = [...selectedKeys];
 
         if (testCaseKeys.length < 2) {
             return;
@@ -40,13 +107,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
+            sessionStorage.removeItem(storageKey);
             window.location.href = result.redirectUrl;
         } catch (error) {
             console.error(error);
             alert('Prioritization failed. Ensure Zephyr API token and Ollama are available.');
-            prioritizeBtn.disabled = false;
             prioritizeBtn.textContent = originalText;
-            updatePrioritizeButton();
+            updateUi();
         }
     });
 });

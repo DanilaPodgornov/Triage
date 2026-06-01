@@ -4,7 +4,10 @@
 <th:block th:fragment="main-content">
     <section class="tab-content" id="testcases-app" th:attr="data-project=${project}">
         <div class="actions">
+            <button type="button" id="select-all-btn" class="btn btn-secondary"
+                    th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}">Select All</button>
             <button type="button" id="prioritize-btn" class="btn btn-primary" disabled>Prioritize</button>
+            <span id="selection-count" class="selection-count"></span>
         </div>
 
         <form class="local-filters" method="get" th:action="@{/testcases}">
@@ -99,6 +102,10 @@
                th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage + 1})}"
                class="pagination-link">Next</a>
         </nav>
+
+        <script th:inline="javascript">
+            window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
+        </script>
     </section>
 </th:block>
 </html>

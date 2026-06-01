@@ -50,6 +50,7 @@ class TestCaseServiceTest {
 		var result = testCaseService.getTestCasesPage(Project.B2C, query);
 
 		assertThat(result.totalItems()).isEqualTo(2);
+		assertThat(result.allMatchingTestCaseKeys()).containsExactlyInAnyOrder("SQM-T1", "SQM-T3");
 		assertThat(result.testCases()).extracting("key").containsExactly("SQM-T1", "SQM-T3");
 		verify(zephyrScaleClient).getTestCases("SQM", 0, 1000, Optional.empty());
 	}
@@ -87,6 +88,7 @@ class TestCaseServiceTest {
 		var result = testCaseService.getTestCasesPage(Project.B2C, query);
 
 		assertThat(result.totalItems()).isEqualTo(2);
+		assertThat(result.allMatchingTestCaseKeys()).containsExactly("SQM-T2", "SQM-T1");
 		assertThat(result.testCases()).extracting("key").containsExactly("SQM-T2", "SQM-T1");
 		assertThat(result.testCases()).extracting("folder").containsOnly("Folder A");
 	}

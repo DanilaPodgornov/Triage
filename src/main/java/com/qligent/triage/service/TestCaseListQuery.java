@@ -12,11 +12,13 @@ public record TestCaseListQuery(
 ) {
 
 	public boolean requiresLocalProcessing() {
-		return priorityId.isPresent()
-				|| folderId.isPresent()
-				|| statusId.isPresent()
+		return hasActiveFilters()
 				|| sort != TestCaseSort.KEY
 				|| sortDirection != SortDirection.ASC;
+	}
+
+	public boolean hasActiveFilters() {
+		return priorityId.isPresent() || folderId.isPresent() || statusId.isPresent();
 	}
 
 }

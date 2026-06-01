@@ -17,6 +17,7 @@ public record TestCasesPageView(
 		TestCaseSort sort,
 		SortDirection sortDirection,
 		List<TestCaseView> testCases,
+		List<String> allMatchingTestCaseKeys,
 		int currentPage,
 		int pageSize,
 		int totalItems,
