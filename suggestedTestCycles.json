@@ -1,0 +1,8 @@
+{
+  "suggestedTestCycles" : [ {
+    "suggestedTestCycleKey" : "PROJECT-SR4",
+    "suggestedTestCycleName" : "High Priority Tests",
+    "suggestedTestCycleStatus" : "Waiting",
+    "testCases" : [ "SQM-T8", "SQM-T7", "SQM-T4", "SQM-T14" ]
+  } ]
+}

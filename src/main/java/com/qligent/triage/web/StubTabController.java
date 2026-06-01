@@ -15,11 +15,6 @@ public class StubTabController {
 		return stubPage(model, project, "testcycles", "Test Cycles");
 	}
 
-	@GetMapping("/suggestedcycles")
-	public String suggestedTestCycles(@RequestParam(defaultValue = "B2C") String project, Model model) {
-		return stubPage(model, project, "suggestedcycles", "Suggested Test Cycles");
-	}
-
 	private String stubPage(Model model, String project, String activeTab, String title) {
 		model.addAttribute("activeTab", activeTab);
 		model.addAttribute("project", Project.fromLabel(project).label());

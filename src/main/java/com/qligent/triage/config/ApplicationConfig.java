@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties({ ZephyrProperties.class, LlmProperties.class })
+@EnableConfigurationProperties({ ZephyrProperties.class, LlmProperties.class, TriageProperties.class })
 public class ApplicationConfig {
 
 	@Bean

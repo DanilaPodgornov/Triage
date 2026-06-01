@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, 'Suggested Test Cycles', false)}">
+<th:block th:fragment="main-content">
+    <section class="tab-content" id="suggested-cycles-app" th:attr="data-project=${project}">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th class="col-key">Key</th>
+                <th class="col-name">Name</th>
+                <th class="col-status">Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(cycles)}">
+                <td colspan="3" class="empty-row">No suggested test cycles yet. Select test cases and click Prioritize.</td>
+            </tr>
+            <tr th:each="cycle : ${cycles}">
+                <td class="col-key">
+                    <a th:href="@{/suggestedcycles/{key}(key=${cycle.suggestedTestCycleKey}, project=${project})}"
+                       th:text="${cycle.suggestedTestCycleKey}"></a>
+                </td>
+                <td class="col-name" th:text="${cycle.suggestedTestCycleName}"></td>
+                <td class="col-status" th:text="${cycle.suggestedTestCycleStatus}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</th:block>
+</html>

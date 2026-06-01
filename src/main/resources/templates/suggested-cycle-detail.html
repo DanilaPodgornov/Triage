@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, ${cycle.suggestedTestCycleName}, false)}">
+<th:block th:fragment="main-content">
+    <section class="tab-content" id="suggested-cycle-detail-app"
+             th:attr="data-cycle-key=${cycle.suggestedTestCycleKey}, data-project=${project}, data-status=${cycle.suggestedTestCycleStatus}">
+        <div class="cycle-header">
+            <p class="cycle-meta"><strong>Key:</strong> <span th:text="${cycle.suggestedTestCycleKey}"></span></p>
+            <p class="cycle-meta"><strong>Status:</strong> <span id="cycle-status" th:text="${cycle.suggestedTestCycleStatus}"></span></p>
+        </div>
+
+        <div class="actions cycle-actions">
+            <button type="button" id="save-order-btn" class="btn btn-secondary" disabled>Save</button>
+            <button type="button" id="send-zephyr-btn" class="btn btn-primary"
+                    th:disabled="${cycle.suggestedTestCycleStatus == 'Sent'}">Send to Zephyr</button>
+            <a th:href="@{/suggestedcycles(project=${project})}" class="btn btn-link">Back to list</a>
+        </div>
+
+        <ul class="sortable-list" id="test-case-list">
+            <li class="sortable-item" th:each="testCaseKey : ${cycle.testCases}" draggable="true" th:attr="data-key=${testCaseKey}">
+                <span class="drag-handle" title="Drag to reorder">☰</span>
+                <span class="test-case-key" th:text="${testCaseKey}"></span>
+            </li>
+        </ul>
+    </section>
+    <script th:src="@{/js/suggested-cycle-detail.js}" defer></script>
+</th:block>
+</html>

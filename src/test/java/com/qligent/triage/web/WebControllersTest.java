@@ -1,5 +1,6 @@
 package com.qligent.triage.web;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,11 +21,21 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.qligent.triage.model.Project;
+import com.qligent.triage.service.SortDirection;
+import com.qligent.triage.service.TestCaseListQuery;
 import com.qligent.triage.service.TestCaseService;
+import com.qligent.triage.service.TestCaseSort;
+import com.qligent.triage.suggested.SuggestedTestCycle;
+import com.qligent.triage.suggested.SuggestedTestCycleService;
 import com.qligent.triage.web.model.TestCaseView;
 import com.qligent.triage.web.model.TestCasesPageView;
 
-@WebMvcTest(controllers = { HomeController.class, TestCaseController.class, StubTabController.class })
+@WebMvcTest(controllers = {
+		HomeController.class,
+		TestCaseController.class,
+		StubTabController.class,
+		SuggestedTestCycleController.class
+})
 @Import({ WebModelAdvice.class, WebExceptionHandler.class })
 class WebControllersTest {
 
@@ -33,6 +44,9 @@ class WebControllersTest {
 
 	@MockitoBean
 	private TestCaseService testCaseService;
+
+	@MockitoBean
+	private SuggestedTestCycleService suggestedTestCycleService;
 
 	@Test
 	void rootRedirectsToB2CTestCases() throws Exception {
@@ -46,15 +60,21 @@ class WebControllersTest {
 		var pageView = new TestCasesPageView(
 				Project.B2C,
 				List.of(),
+				List.of(),
+				List.of(),
 				null,
-				List.of(new TestCaseView("SQM-T1", "Normal", "Sample test case")),
+				null,
+				null,
+				TestCaseSort.KEY,
+				SortDirection.ASC,
+				List.of(new TestCaseView("SQM-T1", "Normal", "Approved", "Folder A", "Sample test case")),
 				0,
 				10,
 				1,
 				1,
 				true
 		);
-		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(Optional.empty()), eq(0))).willReturn(pageView);
+		given(testCaseService.getTestCasesPage(eq(Project.B2C), any(TestCaseListQuery.class))).willReturn(pageView);
 
 		mockMvc.perform(get("/testcases").param("project", "B2C"))
 				.andExpect(status().isOk())
@@ -64,11 +84,17 @@ class WebControllersTest {
 	}
 
 	@Test
-	void testCasesPriorityFilterPassedToService() throws Exception {
+	void testCasesFiltersPassedToService() throws Exception {
 		var pageView = new TestCasesPageView(
 				Project.B2C,
 				List.of(),
-				1140558L,
+				List.of(),
+				List.of(),
+				1L,
+				10L,
+				20L,
+				TestCaseSort.FOLDER,
+				SortDirection.DESC,
 				List.of(),
 				0,
 				10,
@@ -76,15 +102,26 @@ class WebControllersTest {
 				1,
 				true
 		);
-		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(Optional.of(1140558L)), eq(0))).willReturn(pageView);
+		var expectedQuery = new TestCaseListQuery(
+				Optional.of(1L),
+				Optional.of(10L),
+				Optional.of(20L),
+				TestCaseSort.FOLDER,
+				SortDirection.DESC,
+				0);
+		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(expectedQuery))).willReturn(pageView);
 
 		mockMvc.perform(get("/testcases")
 						.param("project", "B2C")
-						.param("priority", "1140558"))
+						.param("priority", "1")
+						.param("folder", "10")
+						.param("status", "20")
+						.param("sort", "folder")
+						.param("dir", "desc"))
 				.andExpect(status().isOk())
 				.andExpect(view().name("testcases"));
 
-		then(testCaseService).should().getTestCasesPage(eq(Project.B2C), eq(Optional.of(1140558L)), eq(0));
+		then(testCaseService).should().getTestCasesPage(eq(Project.B2C), eq(expectedQuery));
 	}
 
 	@Test
@@ -96,10 +133,15 @@ class WebControllersTest {
 	}
 
 	@Test
-	void suggestedCyclesStubRenders() throws Exception {
+	void suggestedCyclesListRenders() throws Exception {
+		given(suggestedTestCycleService.listForProject(Project.B2C)).willReturn(List.of(
+				SuggestedTestCycle.create("SQM-SR1", "Regression", List.of("SQM-T1"))
+		));
+
 		mockMvc.perform(get("/suggestedcycles").param("project", "B2C"))
 				.andExpect(status().isOk())
-				.andExpect(view().name("stub-tab"));
+				.andExpect(view().name("suggested-cycles"))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("SQM-SR1")));
 	}
 
 }

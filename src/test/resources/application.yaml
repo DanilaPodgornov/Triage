@@ -1,2 +1,5 @@
 zephyr:
   api-token: test-token
+
+triage:
+  suggested-cycles-file: build/test-suggestedTestCycles.json

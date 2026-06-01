@@ -16,3 +16,6 @@ zephyr:
 llm:
   base-url: http://localhost:11434
   model: qwen2.5:3b
+
+triage:
+  suggested-cycles-file: suggestedTestCycles.json

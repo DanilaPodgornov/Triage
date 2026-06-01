@@ -63,7 +63,8 @@ body {
 .local-filters {
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 8px 16px;
 }
 
 .filter-form label,
@@ -142,7 +143,9 @@ body {
     white-space: nowrap;
 }
 
-.col-priority {
+.col-priority,
+.col-status,
+.col-folder {
     width: 120px;
 }
 
@@ -186,6 +189,81 @@ body {
 .stub-content p {
     margin: 0;
     color: #6b7280;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #111827;
+    border-color: #d1d5db;
+}
+
+.btn-secondary:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.btn-link {
+    display: inline-block;
+    padding: 8px 12px;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.col-status {
+    width: 120px;
+}
+
+.cycle-header {
+    margin-bottom: 16px;
+}
+
+.cycle-meta {
+    margin: 4px 0;
+}
+
+.cycle-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sortable-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.sortable-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: grab;
+}
+
+.sortable-item:last-child {
+    border-bottom: none;
+}
+
+.sortable-item.dragging {
+    opacity: 0.6;
+    background: #f9fafb;
+}
+
+.drag-handle {
+    color: #6b7280;
+    font-size: 18px;
+    user-select: none;
+}
+
+.test-case-key {
+    font-weight: 600;
 }
 
 .sr-only {

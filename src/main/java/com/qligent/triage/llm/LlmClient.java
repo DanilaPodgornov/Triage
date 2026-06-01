@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.qligent.triage.config.LlmProperties;
+import tools.jackson.databind.ObjectMapper;
+
+import com.qligent.triage.llm.dto.LlmPrioritizationResult;
 import com.qligent.triage.llm.dto.OllamaChatRequest;
 import com.qligent.triage.llm.dto.OllamaChatResponse;
 
@@ -14,16 +17,19 @@ public class LlmClient {
 
 	private final RestClient restClient;
 	private final LlmProperties properties;
+	private final ObjectMapper objectMapper;
 
-	public LlmClient(RestClient llmRestClient, LlmProperties properties) {
+	public LlmClient(RestClient llmRestClient, LlmProperties properties, ObjectMapper objectMapper) {
 		this.restClient = llmRestClient;
 		this.properties = properties;
+		this.objectMapper = objectMapper;
 	}
 
 	public String helloOneWord() {
 		var request = new OllamaChatRequest(
 				properties.model(),
 				false,
+				null,
 				List.of(new OllamaChatRequest.Message("user", "Say hello in one word"))
 		);
 
@@ -37,5 +43,51 @@ public class LlmClient {
 			throw new IllegalStateException("LLM returned empty response.");
 		}
 		return response.message().content().trim();
+	}
+
+	public LlmPrioritizationResult prioritizeTestCases(String testCasesJson, List<String> inputKeys) {
+		String userPrompt = """
+				You are a QA triage assistant. Rank the following test cases by execution priority \
+				(highest priority first) using metadata and recent execution history.
+
+				Input test case keys: %s
+
+				Test case data (JSON):
+				%s
+
+				Respond with JSON only, matching this schema exactly:
+				{
+				  "suggestedTestCycleName": "short descriptive cycle name",
+				  "testCases": ["KEY1", "KEY2"]
+				}
+
+				Rules:
+				- testCases must include every input key exactly once
+				- order from highest to lowest execution priority
+				- do not include suggestedTestCycleKey (it is assigned by the application)
+				""".formatted(String.join(", ", inputKeys), testCasesJson);
+
+		var request = new OllamaChatRequest(
+				properties.model(),
+				false,
+				"json",
+				List.of(new OllamaChatRequest.Message("user", userPrompt))
+		);
+
+		var response = restClient.post()
+				.uri("/api/chat")
+				.body(request)
+				.retrieve()
+				.body(OllamaChatResponse.class);
+
+		if (response == null || response.message() == null || response.message().content() == null) {
+			throw new IllegalStateException("LLM returned empty prioritization response.");
+		}
+
+		try {
+			return objectMapper.readValue(response.message().content().trim(), LlmPrioritizationResult.class);
+		} catch (Exception exception) {
+			throw new IllegalStateException("Failed to parse LLM prioritization JSON.", exception);
+		}
 	}
 }

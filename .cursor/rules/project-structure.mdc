@@ -18,10 +18,10 @@ Example HTTP calls and captured responses for [Zephyr Scale](https://smartbear.c
 
 | Purpose | Path |
 |--------|------|
-| Example requests (curl, etc.) | `Zephyr Scale API/requests/` |
-| Example API responses (JSON) | `Zephyr Scale API/responses/` |
+| Example requests (curl, etc.) | `Zephyr Scale API/B2C/requests/` (B2B: same endpoints, `projectKey=SB2B`) |
+| Example API responses (JSON) | `Zephyr Scale API/B2C/responses/` |
 
-Pair files by name prefix when possible (e.g. `Get test cases B2C - code` ↔ `Get test cases B2C - response`).
+Pair files by name prefix when possible (e.g. `Get test cases - code` ↔ `Get test cases - response`).
 
 When implementing Zephyr integration, read matching pairs from these folders before inventing request/response shapes.
 

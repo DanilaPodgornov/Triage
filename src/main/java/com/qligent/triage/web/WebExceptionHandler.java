@@ -22,6 +22,12 @@ public class WebExceptionHandler {
 		return "error";
 	}
 
+	@ExceptionHandler(IllegalArgumentException.class)
+	public String handleBadRequest(IllegalArgumentException exception, HttpServletRequest request, Model model) {
+		prepareErrorModel(request, model, exception.getMessage());
+		return "error";
+	}
+
 	private void prepareErrorModel(HttpServletRequest request, Model model, String message) {
 		model.addAttribute("error", message);
 		if (!model.containsAttribute("project")) {
