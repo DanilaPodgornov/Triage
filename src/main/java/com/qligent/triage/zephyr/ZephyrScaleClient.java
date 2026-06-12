@@ -12,6 +12,7 @@ import com.qligent.triage.zephyr.dto.StatusDto;
 import com.qligent.triage.zephyr.dto.TestCaseDetailDto;
 import com.qligent.triage.zephyr.dto.TestCaseDto;
 import com.qligent.triage.zephyr.dto.TestExecutionDto;
+import com.qligent.triage.zephyr.dto.TestExecutionIssueLinkDto;
 import com.qligent.triage.zephyr.dto.ZephyrPage;
 
 @Component
@@ -82,6 +83,14 @@ public class ZephyrScaleClient {
 						.queryParam("startAt", startAt)
 						.queryParam("maxResults", maxResults)
 						.build())
+				.retrieve()
+				.body(new org.springframework.core.ParameterizedTypeReference<>() {
+				});
+	}
+
+	public ZephyrPage<TestExecutionIssueLinkDto> getTestExecutionIssueLinks(String testExecutionKey) {
+		return restClient.get()
+				.uri("/testexecutions/{testExecutionKey}/links/issues", testExecutionKey)
 				.retrieve()
 				.body(new org.springframework.core.ParameterizedTypeReference<>() {
 				});

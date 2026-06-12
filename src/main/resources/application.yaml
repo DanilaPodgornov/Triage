@@ -4,6 +4,8 @@ spring:
     name: triage
   thymeleaf:
     cache: false
+  config:
+    import: optional:file:./secrets.yaml
 
 zephyr:
   api-url: https://api.zephyrscale.smartbear.com/v2
@@ -17,6 +19,11 @@ llm:
   base-url: http://localhost:11434
   model: qwen2.5:3b
   default-prompt-location: classpath:llm/default-prioritization-prompt.txt
+
+jira:
+  api-url: ${JIRA_API_URL:}
+  email: ${JIRA_EMAIL:}
+  api-token: ${JIRA_API_TOKEN:}
 
 triage:
   suggested-cycles-file: suggestedTestCycles.json

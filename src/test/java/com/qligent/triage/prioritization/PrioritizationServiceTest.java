@@ -54,8 +54,9 @@ class PrioritizationServiceTest {
 	@Test
 	void shouldPrioritizeAndPersistSuggestedCycle() {
 		when(zephyrScaleClient.resolveProjectKey(Project.B2C)).thenReturn("SQM");
-		when(enrichmentService.enrich("SQM-T1")).thenReturn(TestCaseEnrichment.builder("SQM-T1").name("A").build());
-		when(enrichmentService.enrich("SQM-T2")).thenReturn(TestCaseEnrichment.builder("SQM-T2").name("B").build());
+		when(enrichmentService.enrichAll(Project.B2C, List.of("SQM-T1", "SQM-T2"))).thenReturn(List.of(
+				TestCaseEnrichment.builder("SQM-T1").name("A").build(),
+				TestCaseEnrichment.builder("SQM-T2").name("B").build()));
 		when(llmClient.prioritizeTestCases(any(), eq(List.of("SQM-T1", "SQM-T2")))).thenReturn(
 				new LlmPrioritizationResult(null, "Regression Sprint", List.of("SQM-T2", "SQM-T1")));
 
@@ -64,8 +65,7 @@ class PrioritizationServiceTest {
 		assertThat(cycle.suggestedTestCycleKey()).isEqualTo("SQM-SR1");
 		assertThat(cycle.testCases()).containsExactly("SQM-T2", "SQM-T1");
 		assertThat(storage.findByKey("SQM-SR1")).isPresent();
-		verify(enrichmentService).enrich("SQM-T1");
-		verify(enrichmentService).enrich("SQM-T2");
+		verify(enrichmentService).enrichAll(Project.B2C, List.of("SQM-T1", "SQM-T2"));
 	}
 
 }

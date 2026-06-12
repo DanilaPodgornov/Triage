@@ -13,7 +13,8 @@ public record TestCaseEnrichment(
 		List<String> labels,
 		Long priorityId,
 		Long statusId,
-		List<ExecutionSummary> recentExecutions
+		List<ExecutionSummary> recentExecutions,
+		List<LinkedIssueSummary> linkedIssues
 ) {
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -21,7 +22,30 @@ public record TestCaseEnrichment(
 			String key,
 			String actualEndDate,
 			long executionStatusId,
-			Long testCycleId
+			String executionStatusName,
+			Long testCycleId,
+			Long executionTimeMs,
+			String comment,
+			List<ExecutionIssueLink> issueLinks
+	) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ExecutionIssueLink(
+			long issueId,
+			String issueKey,
+			String linkType
+	) {
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record LinkedIssueSummary(
+			long issueId,
+			String issueKey,
+			String summary,
+			String status,
+			String priority,
+			String description
 	) {
 	}
 
@@ -37,6 +61,7 @@ public record TestCaseEnrichment(
 		private Long priorityId;
 		private Long statusId;
 		private List<ExecutionSummary> recentExecutions = new ArrayList<>();
+		private List<LinkedIssueSummary> linkedIssues = new ArrayList<>();
 
 		private TestCaseEnrichmentBuilder(String key) {
 			this.key = key;
@@ -72,8 +97,21 @@ public record TestCaseEnrichment(
 			return this;
 		}
 
+		public TestCaseEnrichmentBuilder linkedIssues(List<LinkedIssueSummary> linkedIssues) {
+			this.linkedIssues = linkedIssues;
+			return this;
+		}
+
 		public TestCaseEnrichment build() {
-			return new TestCaseEnrichment(key, name, objective, labels, priorityId, statusId, recentExecutions);
+			return new TestCaseEnrichment(
+					key,
+					name,
+					objective,
+					labels,
+					priorityId,
+					statusId,
+					recentExecutions,
+					linkedIssues);
 		}
 	}
 

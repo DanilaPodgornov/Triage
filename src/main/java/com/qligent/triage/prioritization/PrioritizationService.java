@@ -44,9 +44,7 @@ public class PrioritizationService {
 		}
 
 		String projectKey = zephyrScaleClient.resolveProjectKey(project);
-		List<TestCaseEnrichment> enrichments = testCaseKeys.stream()
-				.map(enrichmentService::enrich)
-				.toList();
+		List<TestCaseEnrichment> enrichments = enrichmentService.enrichAll(project, testCaseKeys);
 
 		String promptPayload;
 		try {

@@ -39,6 +39,7 @@ out/
 .obsidian/
 Zephyr Scale API
 Zephyr Scale API Access Token.txt
+secrets.yaml
 Terminal.md
 temp.md
 Prompts

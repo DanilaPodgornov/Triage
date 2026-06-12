@@ -25,4 +25,4 @@ Pair files by name prefix when possible (e.g. `Get test cases - code` ↔ `Get t
 
 When implementing Zephyr integration, read matching pairs from these folders before inventing request/response shapes.
 
-**Secrets:** API tokens must not be committed. Do not read or echo `Zephyr Scale API Access Token.txt` in chat output.
+**Secrets:** API tokens must not be committed. Local overrides: copy `secrets.example.yaml` → `secrets.yaml` (gitignored, auto-imported). Env vars (`ZEPHYR_API_TOKEN`, `JIRA_*`) still work and override the file. Do not read or echo token files in chat output.
