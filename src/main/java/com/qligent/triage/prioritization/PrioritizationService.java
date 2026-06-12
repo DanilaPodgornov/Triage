@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import tools.jackson.core.JacksonException;
@@ -18,6 +20,8 @@ import com.qligent.triage.zephyr.ZephyrScaleClient;
 
 @Service
 public class PrioritizationService {
+
+	private static final Logger log = LoggerFactory.getLogger(PrioritizationService.class);
 
 	private final TestCaseEnrichmentService enrichmentService;
 	private final LlmClient llmClient;
@@ -44,7 +48,10 @@ public class PrioritizationService {
 		}
 
 		String projectKey = zephyrScaleClient.resolveProjectKey(project);
+		log.info("Prioritization started: project={}, projectKey={}, testCases={}", project, projectKey, testCaseKeys);
+
 		List<TestCaseEnrichment> enrichments = enrichmentService.enrichAll(project, testCaseKeys);
+		logEnrichmentSummary(enrichments);
 
 		String promptPayload;
 		try {
@@ -55,6 +62,9 @@ public class PrioritizationService {
 
 		LlmPrioritizationResult llmResult = llmClient.prioritizeTestCases(promptPayload, testCaseKeys);
 		List<String> orderedKeys = validateAndNormalizeOrder(testCaseKeys, llmResult.testCases());
+		if (llmResult.testCases() == null || !orderedKeys.equals(llmResult.testCases())) {
+			log.warn("LLM test case order normalized: llm={}, final={}", llmResult.testCases(), orderedKeys);
+		}
 
 		// Cycle key is always generated server-side (LLM may return placeholders like PROJECT-SR1).
 		String cycleKey = storage.nextSuggestedCycleKey(projectKey);
@@ -66,7 +76,36 @@ public class PrioritizationService {
 
 		var cycle = SuggestedTestCycle.create(cycleKey, cycleName, orderedKeys);
 		storage.add(cycle);
+		log.info(
+				"Saved suggested test cycle to {}: key={}, name={}, testCases={}",
+				storage.suggestedCyclesFilePath(),
+				cycleKey,
+				cycleName,
+				orderedKeys);
 		return cycle;
+	}
+
+	private void logEnrichmentSummary(List<TestCaseEnrichment> enrichments) {
+		for (TestCaseEnrichment enrichment : enrichments) {
+			log.info(
+					"Enriched {} ({}): {} execution(s), {} linked issue(s)",
+					enrichment.key(),
+					enrichment.name(),
+					enrichment.recentExecutions().size(),
+					enrichment.linkedIssues().size());
+			for (TestCaseEnrichment.LinkedIssueSummary issue : enrichment.linkedIssues()) {
+				log.info(
+						"Linked issue for {}: {} — {} [status={}, priority={}]",
+						enrichment.key(),
+						issue.issueKey(),
+						issue.summary(),
+						issue.status(),
+						issue.priority());
+				if (issue.description() != null && !issue.description().isBlank()) {
+					log.info("Issue {} description:\n{}", issue.issueKey(), issue.description());
+				}
+			}
+		}
 	}
 
 	private List<String> validateAndNormalizeOrder(List<String> inputKeys, List<String> llmOrderedKeys) {

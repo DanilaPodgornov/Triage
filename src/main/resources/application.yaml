@@ -25,6 +25,14 @@ jira:
   email: ${JIRA_EMAIL:}
   api-token: ${JIRA_API_TOKEN:}
 
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
+  level:
+    com.qligent.triage.prioritization: INFO
+    com.qligent.triage.llm.LlmClient: INFO
+
 triage:
   suggested-cycles-file: suggestedTestCycles.json
   theme:

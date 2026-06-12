@@ -242,16 +242,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ project, testCaseKeys })
             });
 
-            if (!response.ok) {
-                throw new Error('Prioritize request failed');
+            const responseText = await response.text();
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                throw new Error(t('testcases.prioritizeFailedInvalidResponse'));
             }
 
-            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || t('testcases.prioritizeFailedGeneric'));
+            }
+
             clearStoredSelection();
             window.location.href = result.redirectUrl;
         } catch (error) {
             console.error(error);
-            alert('Prioritization failed. Ensure Zephyr API token and Ollama are available.');
+            alert(error.message || t('testcases.prioritizeFailedGeneric'));
             prioritizeBtn.textContent = t(originalKey);
             updateUi();
         }

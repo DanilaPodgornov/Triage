@@ -103,6 +103,10 @@ public class SuggestedTestCycleStorage {
 				.anyMatch(testCaseKey -> testCaseKey != null && testCaseKey.startsWith(prefix));
 	}
 
+	public Path suggestedCyclesFilePath() {
+		return filePath;
+	}
+
 	public String nextSuggestedCycleKey(String projectKeyPrefix) {
 		var cycles = load().suggestedTestCycles();
 		if (cycles == null) {

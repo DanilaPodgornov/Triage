@@ -2,6 +2,8 @@ package com.qligent.triage.llm;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -14,6 +16,8 @@ import com.qligent.triage.llm.dto.OllamaChatResponse;
 
 @Component
 public class LlmClient {
+
+	private static final Logger log = LoggerFactory.getLogger(LlmClient.class);
 
 	private final RestClient restClient;
 	private final LlmProperties properties;
@@ -53,6 +57,11 @@ public class LlmClient {
 
 	public LlmPrioritizationResult prioritizeTestCases(String testCasesJson, List<String> inputKeys) {
 		String userPrompt = promptTemplateService.format(String.join(", ", inputKeys), testCasesJson);
+		log.info(
+				"Sending prioritization prompt to LLM: model={}, promptChars={}",
+				properties.model(),
+				userPrompt.length());
+		log.info("LLM prompt:\n{}", userPrompt);
 
 		var request = new OllamaChatRequest(
 				properties.model(),
@@ -71,9 +80,18 @@ public class LlmClient {
 			throw new IllegalStateException("LLM returned empty prioritization response.");
 		}
 
+		String rawResponse = response.message().content().trim();
+		log.info("LLM raw response:\n{}", rawResponse);
+
 		try {
-			return objectMapper.readValue(response.message().content().trim(), LlmPrioritizationResult.class);
+			LlmPrioritizationResult result = objectMapper.readValue(rawResponse, LlmPrioritizationResult.class);
+			log.info(
+					"LLM prioritization response: suggestedTestCycleName={}, testCases={}",
+					result.suggestedTestCycleName(),
+					result.testCases());
+			return result;
 		} catch (Exception exception) {
+			log.error("Failed to parse LLM prioritization JSON. Raw response:\n{}", rawResponse);
 			throw new IllegalStateException("Failed to parse LLM prioritization JSON.", exception);
 		}
 	}

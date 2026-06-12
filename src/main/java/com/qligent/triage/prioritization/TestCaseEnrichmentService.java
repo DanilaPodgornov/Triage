@@ -8,7 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import com.qligent.triage.jira.JiraClient;
 import com.qligent.triage.jira.dto.JiraIssueSummary;
@@ -21,6 +24,8 @@ import com.qligent.triage.zephyr.dto.ZephyrPage;
 
 @Service
 public class TestCaseEnrichmentService {
+
+	private static final Logger log = LoggerFactory.getLogger(TestCaseEnrichmentService.class);
 
 	private static final int EXECUTION_PAGE_SIZE = 100;
 
@@ -106,16 +111,19 @@ public class TestCaseEnrichmentService {
 	}
 
 	private List<TestExecutionIssueLinkDto> resolveIssueLinks(TestExecutionDto execution) {
-		if (execution.links() != null
-				&& execution.links().issues() != null
-				&& !execution.links().issues().isEmpty()) {
+		if (execution.links() != null && execution.links().issues() != null) {
 			return execution.links().issues();
 		}
 		if (execution.key() == null || execution.key().isBlank()) {
 			return List.of();
 		}
-		var response = zephyrScaleClient.getTestExecutionIssueLinks(execution.key());
-		return response.values() == null ? List.of() : response.values();
+		try {
+			var response = zephyrScaleClient.getTestExecutionIssueLinks(execution.key());
+			return response.values() == null ? List.of() : response.values();
+		} catch (RestClientException exception) {
+			log.warn("Could not load issue links for execution {}: {}", execution.key(), exception.getMessage());
+			return List.of();
+		}
 	}
 
 	private LinkedIssueDetails resolveLinkedIssue(
@@ -132,6 +140,12 @@ public class TestCaseEnrichmentService {
 						issue.status(),
 						issue.priority(),
 						issue.description());
+			}
+			if (jiraClient.isAvailable()) {
+				log.warn(
+						"Jira issue details unavailable for {} (issueId={}): check permissions or issue key",
+						issueLink.issueKey(),
+						issueId);
 			}
 			return new LinkedIssueDetails(
 					issueId,

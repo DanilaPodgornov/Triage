@@ -2,6 +2,7 @@ package com.qligent.triage.prioritization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +84,43 @@ class TestCaseEnrichmentServiceTest {
 		assertThat(enrichment.linkedIssues().getFirst().issueKey()).isEqualTo("SQM-42");
 		assertThat(enrichment.linkedIssues().getFirst().summary()).isEqualTo("Login button broken");
 		verify(jiraClient).getIssue("SQM-42");
+	}
+
+	@Test
+	void shouldNotFetchIssueLinksWhenExecutionAlreadyContainsEmptyIssuesList() {
+		when(zephyrScaleClient.resolveProjectKey(Project.B2C)).thenReturn("SQM");
+		when(zephyrScaleClient.getStatuses("SQM", 0, 100)).thenReturn(new ZephyrPage<>(
+				null, 0, 100, 1, true, List.of(new StatusDto(1137029L, "Pass"))));
+		when(zephyrScaleClient.getTestCase("SQM-T164")).thenReturn(new TestCaseDetailDto(
+				9815361L,
+				"SQM-T164",
+				"Smoke test",
+				null,
+				null,
+				null,
+				List.of(),
+				new TestCaseDetailDto.PriorityRef(1L),
+				new TestCaseDetailDto.StatusRef(2L)));
+		when(zephyrScaleClient.getTestExecutions("SQM-T164", 0, 100)).thenReturn(new ZephyrPage<>(
+				null, 0, 100, 1, true,
+				List.of(new TestExecutionDto(
+						49385146L,
+						"SQM-E1385",
+						"2021-07-19T06:38:58Z",
+						null,
+						null,
+						new TestExecutionDto.ExecutionStatusRef(1137029L),
+						new TestExecutionDto.TestCycleRef(1164953L),
+						new TestExecutionDto.ExecutionLinks(
+								"https://example/links",
+								List.of())))));
+
+		var enrichments = enrichmentService.enrichAll(Project.B2C, List.of("SQM-T164"));
+
+		assertThat(enrichments).hasSize(1);
+		assertThat(enrichments.getFirst().recentExecutions()).hasSize(1);
+		assertThat(enrichments.getFirst().linkedIssues()).isEmpty();
+		verify(zephyrScaleClient, never()).getTestExecutionIssueLinks("SQM-E1385");
 	}
 
 }
