@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SuggestedTestCycle(
@@ -92,5 +94,19 @@ public record SuggestedTestCycle(
 			String lastExecutionStatus,
 			long executionTimeMs
 	) {
+		@JsonCreator
+		public static TestMetrics fromJson(
+				@JsonProperty("executionsCount") int executionsCount,
+				@JsonProperty("failuresCount") int failuresCount,
+				@JsonProperty(value = "failedExecutionsCount", required = false) Integer failedExecutionsCount,
+				@JsonProperty("lastExecutionStatus") String lastExecutionStatus,
+				@JsonProperty("executionTimeMs") long executionTimeMs) {
+			return new TestMetrics(
+					executionsCount,
+					failuresCount,
+					failedExecutionsCount != null ? failedExecutionsCount : 0,
+					lastExecutionStatus,
+					executionTimeMs);
+		}
 	}
 }

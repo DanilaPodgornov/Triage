@@ -42,7 +42,7 @@
             </table>
         </div>
 
-        <script type="application/json" id="suggested-cycle-tests-json" th:text="${testsJson}"></script>
+        <script type="application/json" id="suggested-cycle-tests-json" th:utext="${testsJson}"></script>
     </section>
     <script th:src="@{/js/suggested-cycle-detail.js}" defer></script>
 </th:block>

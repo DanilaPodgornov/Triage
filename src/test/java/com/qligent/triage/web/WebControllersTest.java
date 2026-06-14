@@ -177,4 +177,27 @@ class WebControllersTest {
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("SQM-SR1")));
 	}
 
+	@Test
+	void suggestedCycleDetailRendersTestsJsonUnescaped() throws Exception {
+		given(suggestedTestCycleService.getByKey("SQM-SR1")).willReturn(
+				SuggestedTestCycle.create(
+						"SQM-SR1",
+						"Regression",
+						"SQM",
+						1781453505000L,
+						"1781453505000_SQM-SR1",
+						List.of(new SuggestedTestCycle.SuggestedTestCaseEntry(
+								"SQM-T1453",
+								"Smoke test",
+								Map.of("priority", 0.5, "status", 0.5),
+								new SuggestedTestCycle.TestMetrics(1, 0, 0, "Pass", 100L),
+								0.15))));
+
+		mockMvc.perform(get("/suggestedcycles/SQM-SR1").param("project", "B2C"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("suggested-cycle-detail"))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("\"key\":\"SQM-T1453\"")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("&quot;"))));
+	}
+
 }

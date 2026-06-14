@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import tools.jackson.databind.ObjectMapper;
@@ -14,6 +16,8 @@ import com.qligent.triage.config.TriageProperties;
 
 @Component
 public class SuggestedTestCycleStorage {
+
+	private static final Logger log = LoggerFactory.getLogger(SuggestedTestCycleStorage.class);
 
 	private final Path cyclesDir;
 	private final ObjectMapper objectMapper;
@@ -82,7 +86,8 @@ public class SuggestedTestCycleStorage {
 		try {
 			return Optional.of(objectMapper.readValue(file.toFile(), SuggestedTestCycle.class));
 		} catch (Exception exception) {
-			throw new IllegalStateException("Failed to read suggested test cycle file: " + file, exception);
+			log.warn("Skipping unreadable suggested test cycle file {}: {}", file.getFileName(), exception.getMessage());
+			return Optional.empty();
 		}
 	}
 
