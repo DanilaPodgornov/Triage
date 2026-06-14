@@ -32,9 +32,9 @@ public class SuggestedTestCycleService {
 				.orElseThrow(() -> new IllegalArgumentException("Suggested test cycle not found: " + cycleKey));
 	}
 
-	public void saveOrder(String cycleKey, List<String> testCases) {
+	public void saveSortState(String cycleKey, String sortField, String sortDirection) {
 		var existing = getByKey(cycleKey);
-		storage.update(existing.withTestCases(testCases));
+		storage.update(existing.withSortState(sortField, sortDirection));
 	}
 
 	public void sendToZephyr(String cycleKey) {

@@ -11,15 +11,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.qligent.triage.model.Project;
 import com.qligent.triage.suggested.SuggestedTestCycleService;
-import com.qligent.triage.web.api.SaveOrderRequest;
+import com.qligent.triage.web.api.SaveSortStateRequest;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Controller
 public class SuggestedTestCycleController {
 
 	private final SuggestedTestCycleService suggestedTestCycleService;
+	private final ObjectMapper objectMapper;
 
-	public SuggestedTestCycleController(SuggestedTestCycleService suggestedTestCycleService) {
+	public SuggestedTestCycleController(
+			SuggestedTestCycleService suggestedTestCycleService,
+			ObjectMapper objectMapper) {
 		this.suggestedTestCycleService = suggestedTestCycleService;
+		this.objectMapper = objectMapper;
 	}
 
 	@GetMapping("/suggestedcycles")
@@ -41,13 +48,22 @@ public class SuggestedTestCycleController {
 		model.addAttribute("activeTab", "suggestedcycles");
 		model.addAttribute("project", selectedProject.label());
 		model.addAttribute("cycle", cycle);
+		model.addAttribute("testsJson", serializeTests(cycle.tests()));
 		return "suggested-cycle-detail";
+	}
+
+	private String serializeTests(java.util.List<com.qligent.triage.suggested.SuggestedTestCycle.SuggestedTestCaseEntry> tests) {
+		try {
+			return objectMapper.writeValueAsString(tests);
+		} catch (JacksonException exception) {
+			throw new IllegalStateException("Failed to serialize suggested test cycle tests.", exception);
+		}
 	}
 
 	@PostMapping("/api/suggestedcycles/{cycleKey}/save")
 	@ResponseBody
-	public void saveOrder(@PathVariable String cycleKey, @RequestBody SaveOrderRequest request) {
-		suggestedTestCycleService.saveOrder(cycleKey, request.testCases());
+	public void saveSortState(@PathVariable String cycleKey, @RequestBody SaveSortStateRequest request) {
+		suggestedTestCycleService.saveSortState(cycleKey, request.sortField(), request.sortDirection());
 	}
 
 	@PostMapping("/api/suggestedcycles/{cycleKey}/send")

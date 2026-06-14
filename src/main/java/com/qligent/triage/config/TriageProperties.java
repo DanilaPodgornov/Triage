@@ -4,12 +4,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "triage")
 public record TriageProperties(
-		String suggestedCyclesFile,
+		String llmArtifactsDir,
+		String suggestedCyclesDir,
 		Theme theme,
 		Locale locale
 ) {
 
 	public TriageProperties {
+		if (llmArtifactsDir == null || llmArtifactsDir.isBlank()) {
+			llmArtifactsDir = "./llm";
+		}
+		if (suggestedCyclesDir == null || suggestedCyclesDir.isBlank()) {
+			suggestedCyclesDir = "./suggested_test_cycles";
+		}
 		if (theme == null) {
 			theme = new Theme("system");
 		}

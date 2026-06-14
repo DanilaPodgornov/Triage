@@ -1,14 +1,11 @@
 package com.qligent.triage.suggested;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
@@ -18,109 +15,78 @@ import com.qligent.triage.config.TriageProperties;
 @Component
 public class SuggestedTestCycleStorage {
 
-	private static final Pattern SR_KEY_PATTERN = Pattern.compile("^(.+)-SR(\\d+)$");
-
-	private final Path filePath;
+	private final Path cyclesDir;
 	private final ObjectMapper objectMapper;
 
 	public SuggestedTestCycleStorage(TriageProperties properties, ObjectMapper objectMapper) {
-		this.filePath = Path.of(properties.suggestedCyclesFile()).toAbsolutePath().normalize();
+		this.cyclesDir = Path.of(properties.suggestedCyclesDir()).toAbsolutePath().normalize();
 		this.objectMapper = objectMapper;
 	}
 
-	public SuggestedTestCyclesFile load() {
-		if (!Files.exists(filePath)) {
-			return SuggestedTestCyclesFile.empty();
-		}
+	public Path cyclesDirectory() {
+		return cyclesDir;
+	}
+
+	public void save(SuggestedTestCycle cycle) {
 		try {
-			return objectMapper.readValue(filePath.toFile(), SuggestedTestCyclesFile.class);
+			Files.createDirectories(cyclesDir);
+			Path file = cycleFile(cycle.suggestedTestCycleKey());
+			objectMapper.writerWithDefaultPrettyPrinter().writeValue(file.toFile(), cycle);
 		} catch (Exception exception) {
-			throw new IllegalStateException("Failed to read suggested test cycles file: " + filePath, exception);
+			throw new IllegalStateException("Failed to write suggested test cycle: " + cycle.suggestedTestCycleKey(), exception);
 		}
 	}
 
-	public void save(SuggestedTestCyclesFile file) {
-		try {
-			if (filePath.getParent() != null) {
-				Files.createDirectories(filePath.getParent());
-			}
-			objectMapper.writerWithDefaultPrettyPrinter().writeValue(filePath.toFile(), file);
-		} catch (IOException exception) {
-			throw new IllegalStateException("Failed to write suggested test cycles file: " + filePath, exception);
-		}
-	}
-
-	public void add(SuggestedTestCycle cycle) {
-		var file = load();
-		var cycles = new ArrayList<>(file.suggestedTestCycles() == null ? List.of() : file.suggestedTestCycles());
-		cycles.add(cycle);
-		save(new SuggestedTestCyclesFile(cycles));
-	}
-
-	public Optional<SuggestedTestCycle> findByKey(String key) {
-		var cycles = load().suggestedTestCycles();
-		if (cycles == null) {
+	public Optional<SuggestedTestCycle> findByKey(String cycleKey) {
+		Path file = cycleFile(cycleKey);
+		if (!Files.exists(file)) {
 			return Optional.empty();
 		}
-		return cycles.stream()
-				.filter(cycle -> cycle.suggestedTestCycleKey().equals(key))
-				.findFirst();
+		try {
+			return Optional.of(objectMapper.readValue(file.toFile(), SuggestedTestCycle.class));
+		} catch (Exception exception) {
+			throw new IllegalStateException("Failed to read suggested test cycle: " + cycleKey, exception);
+		}
 	}
 
-	public void update(SuggestedTestCycle updated) {
-		var file = load();
-		var cycles = new ArrayList<>(file.suggestedTestCycles() == null ? List.of() : file.suggestedTestCycles());
-		for (int i = 0; i < cycles.size(); i++) {
-			if (cycles.get(i).suggestedTestCycleKey().equals(updated.suggestedTestCycleKey())) {
-				cycles.set(i, updated);
-				save(new SuggestedTestCyclesFile(cycles));
-				return;
-			}
-		}
-		throw new IllegalArgumentException("Suggested test cycle not found: " + updated.suggestedTestCycleKey());
+	public SuggestedTestCycle getByKey(String cycleKey) {
+		return findByKey(cycleKey)
+				.orElseThrow(() -> new IllegalArgumentException("Suggested test cycle not found: " + cycleKey));
 	}
 
 	public List<SuggestedTestCycle> findByProjectPrefix(String projectKeyPrefix) {
-		var cycles = load().suggestedTestCycles();
-		if (cycles == null) {
+		if (!Files.isDirectory(cyclesDir)) {
 			return List.of();
 		}
-		return cycles.stream()
-				.filter(cycle -> belongsToProject(cycle, projectKeyPrefix))
-				.sorted(Comparator.comparing(SuggestedTestCycle::suggestedTestCycleKey))
-				.toList();
-	}
-
-	private boolean belongsToProject(SuggestedTestCycle cycle, String projectKeyPrefix) {
-		String prefix = projectKeyPrefix + "-";
-		if (cycle.suggestedTestCycleKey() != null && cycle.suggestedTestCycleKey().startsWith(prefix)) {
-			return true;
+		try (Stream<Path> files = Files.list(cyclesDir)) {
+			return files
+					.filter(path -> path.getFileName().toString().endsWith(".json"))
+					.map(this::readCycleSafely)
+					.flatMap(Optional::stream)
+					.filter(cycle -> cycle.projectKey() != null && cycle.projectKey().equals(projectKeyPrefix))
+					.sorted(Comparator.comparing(SuggestedTestCycle::createdAt).reversed())
+					.toList();
+		} catch (Exception exception) {
+			throw new IllegalStateException("Failed to list suggested test cycles in " + cyclesDir, exception);
 		}
-		if (cycle.testCases() == null) {
-			return false;
+	}
+
+	public void update(SuggestedTestCycle updated) {
+		if (findByKey(updated.suggestedTestCycleKey()).isEmpty()) {
+			throw new IllegalArgumentException("Suggested test cycle not found: " + updated.suggestedTestCycleKey());
 		}
-		return cycle.testCases().stream()
-				.anyMatch(testCaseKey -> testCaseKey != null && testCaseKey.startsWith(prefix));
+		save(updated);
 	}
 
-	public Path suggestedCyclesFilePath() {
-		return filePath;
-	}
-
-	public String nextSuggestedCycleKey(String projectKeyPrefix) {
-		var cycles = load().suggestedTestCycles();
-		if (cycles == null) {
-			return projectKeyPrefix + "-SR1";
+	private Optional<SuggestedTestCycle> readCycleSafely(Path file) {
+		try {
+			return Optional.of(objectMapper.readValue(file.toFile(), SuggestedTestCycle.class));
+		} catch (Exception exception) {
+			throw new IllegalStateException("Failed to read suggested test cycle file: " + file, exception);
 		}
-		int max = cycles.stream()
-				.map(SuggestedTestCycle::suggestedTestCycleKey)
-				.map(SR_KEY_PATTERN::matcher)
-				.filter(Matcher::matches)
-				.filter(matcher -> matcher.group(1).equals(projectKeyPrefix))
-				.mapToInt(matcher -> Integer.parseInt(matcher.group(2)))
-				.max()
-				.orElse(0);
-		return projectKeyPrefix + "-SR" + (max + 1);
 	}
 
+	private Path cycleFile(String cycleKey) {
+		return cyclesDir.resolve(cycleKey + ".json");
+	}
 }

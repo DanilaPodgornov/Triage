@@ -2,4 +2,5 @@ zephyr:
   api-token: test-token
 
 triage:
-  suggested-cycles-file: build/test-suggestedTestCycles.json
+  llm-artifacts-dir: build/test-llm
+  suggested-cycles-dir: build/test-suggested_test_cycles

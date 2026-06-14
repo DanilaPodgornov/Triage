@@ -17,19 +17,30 @@ class SuggestedTestCycleStorageFilterTest {
 	Path tempDir;
 
 	@Test
-	void shouldFindCycleByTestCasePrefixWhenLlmReturnedPlaceholderKey() {
+	void shouldFindCyclesByProjectKeyField() {
 		var storage = new SuggestedTestCycleStorage(
-				new TriageProperties(tempDir.resolve("cycles.json").toString(), null, null),
+				new TriageProperties(
+						tempDir.resolve("llm").toString(),
+						tempDir.resolve("suggested_test_cycles").toString(),
+						null,
+						null),
 				new ObjectMapper());
-		storage.add(SuggestedTestCycle.create(
-				"PROJECT-SR4",
+		storage.save(SuggestedTestCycle.create(
+				"SQM-SR1",
 				"High Priority Tests",
-				List.of("SQM-T7", "SQM-T8")));
+				"SQM",
+				1781453505000L,
+				"1781453505000_SQM-SR1",
+				List.of()));
+		storage.save(SuggestedTestCycle.create(
+				"SB2B-SR1",
+				"B2B Cycle",
+				"SB2B",
+				1781453505001L,
+				"1781453505001_SB2B-SR1",
+				List.of()));
 
-		var result = storage.findByProjectPrefix("SQM");
-
-		assertThat(result).hasSize(1);
-		assertThat(result.getFirst().suggestedTestCycleKey()).isEqualTo("PROJECT-SR4");
+		assertThat(storage.findByProjectPrefix("SQM")).hasSize(1);
+		assertThat(storage.findByProjectPrefix("SQM").getFirst().suggestedTestCycleKey()).isEqualTo("SQM-SR1");
 	}
-
 }

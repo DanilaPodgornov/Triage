@@ -10,17 +10,27 @@ import com.qligent.triage.config.LlmProperties;
 class LlmPromptTemplateServiceTest {
 
 	@Test
-	void shouldLoadAndFormatDefaultPromptTemplate() {
+	void shouldLoadAndFormatWeightsTemplate() {
 		var service = new LlmPromptTemplateService(
-				new LlmProperties("http://localhost:11434", "test-model", "classpath:llm/default-prioritization-prompt.txt"),
+				new LlmProperties("http://localhost:11434", "qwen2.5:3b", 8192, null),
 				new DefaultResourceLoader());
 
-		assertThat(service.getTemplate()).contains("{inputKeys}").contains("{testCasesJson}");
+		assertThat(service.getTemplate()).contains("{testCaseData}");
 
-		String formatted = service.format("SQM-T1, SQM-T2", "[{\"key\":\"SQM-T1\"}]");
-		assertThat(formatted).contains("SQM-T1, SQM-T2");
-		assertThat(formatted).contains("[{\"key\":\"SQM-T1\"}]");
-		assertThat(formatted).doesNotContain("{inputKeys}");
+		String formatted = service.formatWeightsPrompt("## Test case: SQM-T1");
+		assertThat(formatted).contains("SQM-T1");
+		assertThat(formatted).doesNotContain("{testCaseData}");
 	}
 
+	@Test
+	void shouldResolveTemplateResourceNameFromModelAndContext() {
+		var service = new LlmPromptTemplateService(
+				new LlmProperties("http://localhost:11434", "qwen2.5:3b", 8192, null),
+				new DefaultResourceLoader());
+
+		assertThat(service.templateResourceName(LlmPromptTemplateType.WEIGHTS))
+				.isEqualTo("qwen2.5-3b_ctx8192_weights.md");
+		assertThat(service.templateResourceName(LlmPromptTemplateType.AI_SORT))
+				.isEqualTo("qwen2.5-3b_ctx8192_aisort.md");
+	}
 }

@@ -3,25 +3,46 @@
       th:replace="~{layout :: layout(~{::main-content}, ${cycle.suggestedTestCycleName}, false)}">
 <th:block th:fragment="main-content">
     <section class="tab-content" id="suggested-cycle-detail-app"
-             th:attr="data-cycle-key=${cycle.suggestedTestCycleKey}, data-project=${project}, data-status=${cycle.suggestedTestCycleStatus}">
+             th:attr="data-cycle-key=${cycle.suggestedTestCycleKey},
+                      data-project=${project},
+                      data-status=${cycle.suggestedTestCycleStatus},
+                      data-sort-field=${cycle.sortField},
+                      data-sort-direction=${cycle.sortDirection}">
         <div class="cycle-header">
             <p class="cycle-meta"><strong>Key:</strong> <span th:text="${cycle.suggestedTestCycleKey}"></span></p>
             <p class="cycle-meta"><strong>Status:</strong> <span id="cycle-status" th:text="${cycle.suggestedTestCycleStatus}"></span></p>
+            <p class="cycle-meta"><strong>Artifact folder:</strong> <span th:text="${cycle.artifactFolder}"></span></p>
         </div>
 
         <div class="actions cycle-actions">
-            <button type="button" id="save-order-btn" class="btn btn-secondary" disabled>Save</button>
+            <button type="button" id="save-sort-btn" class="btn btn-secondary" disabled>Save</button>
             <button type="button" id="send-zephyr-btn" class="btn btn-primary"
                     th:disabled="${cycle.suggestedTestCycleStatus == 'Sent'}">Send to Zephyr</button>
             <a th:href="@{/suggestedcycles(project=${project})}" class="btn btn-link">Back to list</a>
         </div>
 
-        <ul class="sortable-list" id="test-case-list">
-            <li class="sortable-item" th:each="testCaseKey : ${cycle.testCases}" draggable="true" th:attr="data-key=${testCaseKey}">
-                <span class="drag-handle" title="Drag to reorder">☰</span>
-                <span class="test-case-key" th:text="${testCaseKey}"></span>
-            </li>
-        </ul>
+        <div class="table-scroll" id="suggested-cycle-table-scroll">
+            <table class="data-table" id="suggested-cycle-table">
+                <thead>
+                <tr>
+                    <th class="sortable-col" data-sort-field="key" data-i18n="suggested.col.key">Key</th>
+                    <th class="sortable-col" data-sort-field="name" data-i18n="suggested.col.name">Name</th>
+                    <th class="sortable-col" data-sort-field="priority" data-i18n="suggested.col.weightPriority">Priority</th>
+                    <th class="sortable-col" data-sort-field="status" data-i18n="suggested.col.weightStatus">Status</th>
+                    <th class="sortable-col" data-sort-field="labels" data-i18n="suggested.col.weightLabels">Labels</th>
+                    <th class="sortable-col" data-sort-field="executionsCount" data-i18n="suggested.col.weightExecutions">Executions</th>
+                    <th class="sortable-col" data-sort-field="failuresCount" data-i18n="suggested.col.weightFailures">Failures</th>
+                    <th class="sortable-col" data-sort-field="lastExecutionStatus" data-i18n="suggested.col.weightLastStatus">Last status</th>
+                    <th class="sortable-col" data-sort-field="executionTime" data-i18n="suggested.col.weightExecutionTime">Exec time</th>
+                    <th class="sortable-col" data-sort-field="aiSort" data-i18n="suggested.col.aiSort">AI sort</th>
+                </tr>
+                </thead>
+                <tbody id="suggested-cycle-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <script type="application/json" id="suggested-cycle-tests-json" th:text="${testsJson}"></script>
     </section>
     <script th:src="@{/js/suggested-cycle-detail.js}" defer></script>
 </th:block>

@@ -62,6 +62,14 @@ const TRIAGE_MESSAGES = {
         'suggested.detail.status': 'Status:',
         'suggested.save': 'Save',
         'suggested.send': 'Send to Zephyr',
+        'suggested.col.aiSort': 'AI sort',
+        'suggested.col.weightPriority': 'Weight: priority',
+        'suggested.col.weightStatus': 'Weight: status',
+        'suggested.col.weightLabels': 'Weight: labels',
+        'suggested.col.weightExecutions': 'Weight: executions',
+        'suggested.col.weightFailures': 'Weight: failures',
+        'suggested.col.weightLastStatus': 'Weight: last status',
+        'suggested.col.weightExecutionTime': 'Weight: exec time',
         'suggested.back': 'Back to list'
     },
     ru: {
@@ -127,6 +135,14 @@ const TRIAGE_MESSAGES = {
         'suggested.detail.status': 'Статус:',
         'suggested.save': 'Сохранить',
         'suggested.send': 'Отправить в Zephyr',
+        'suggested.col.aiSort': 'AI sort',
+        'suggested.col.weightPriority': 'Вес: priority',
+        'suggested.col.weightStatus': 'Вес: status',
+        'suggested.col.weightLabels': 'Вес: labels',
+        'suggested.col.weightExecutions': 'Вес: executions',
+        'suggested.col.weightFailures': 'Вес: failures',
+        'suggested.col.weightLastStatus': 'Вес: last status',
+        'suggested.col.weightExecutionTime': 'Вес: exec time',
         'suggested.back': 'К списку'
     }
 };

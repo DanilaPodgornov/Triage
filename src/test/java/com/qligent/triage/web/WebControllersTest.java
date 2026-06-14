@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.mockito.BDDMockito.then;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -165,7 +166,18 @@ class WebControllersTest {
 	@Test
 	void suggestedCyclesListRenders() throws Exception {
 		given(suggestedTestCycleService.listForProject(Project.B2C)).willReturn(List.of(
-				SuggestedTestCycle.create("SQM-SR1", "Regression", List.of("SQM-T1"))
+				SuggestedTestCycle.create(
+						"SQM-SR1",
+						"Regression",
+						"SQM",
+						1781453505000L,
+						"1781453505000_SQM-SR1",
+						List.of(new SuggestedTestCycle.SuggestedTestCaseEntry(
+								"SQM-T1",
+								"Login",
+								Map.of("priority", 0.5, "status", 0.5),
+								new SuggestedTestCycle.TestMetrics(1, 0, "Pass", 100L),
+								1.0)))
 		));
 
 		mockMvc.perform(get("/suggestedcycles").param("project", "B2C"))

@@ -1,9 +1,12 @@
 package com.qligent.triage.prioritization;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,32 +14,49 @@ import org.springframework.stereotype.Service;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
+import com.qligent.triage.llm.AiSortValidator;
 import com.qligent.triage.llm.LlmClient;
-import com.qligent.triage.llm.dto.LlmPrioritizationResult;
+import com.qligent.triage.llm.WeightValidator;
+import com.qligent.triage.llm.dto.AiSortResponse;
 import com.qligent.triage.model.Project;
 import com.qligent.triage.suggested.SuggestedTestCycle;
 import com.qligent.triage.suggested.SuggestedTestCycleStorage;
 import com.qligent.triage.zephyr.ZephyrScaleClient;
+import com.qligent.triage.zephyr.dto.PriorityDto;
+import com.qligent.triage.zephyr.dto.StatusDto;
+import com.qligent.triage.zephyr.dto.TestCaseDetailDto;
+import com.qligent.triage.zephyr.dto.TestExecutionDto;
+import com.qligent.triage.zephyr.dto.ZephyrPage;
 
 @Service
 public class PrioritizationService {
 
 	private static final Logger log = LoggerFactory.getLogger(PrioritizationService.class);
+	private static final int EXECUTION_PAGE_SIZE = 100;
 
-	private final TestCaseEnrichmentService enrichmentService;
+	private final PrioritizationArtifactService artifactService;
+	private final TestCasePromptRenderer promptRenderer;
 	private final LlmClient llmClient;
+	private final WeightValidator weightValidator;
+	private final AiSortValidator aiSortValidator;
 	private final SuggestedTestCycleStorage storage;
 	private final ZephyrScaleClient zephyrScaleClient;
 	private final ObjectMapper objectMapper;
 
 	public PrioritizationService(
-			TestCaseEnrichmentService enrichmentService,
+			PrioritizationArtifactService artifactService,
+			TestCasePromptRenderer promptRenderer,
 			LlmClient llmClient,
+			WeightValidator weightValidator,
+			AiSortValidator aiSortValidator,
 			SuggestedTestCycleStorage storage,
 			ZephyrScaleClient zephyrScaleClient,
 			ObjectMapper objectMapper) {
-		this.enrichmentService = enrichmentService;
+		this.artifactService = artifactService;
+		this.promptRenderer = promptRenderer;
 		this.llmClient = llmClient;
+		this.weightValidator = weightValidator;
+		this.aiSortValidator = aiSortValidator;
 		this.storage = storage;
 		this.zephyrScaleClient = zephyrScaleClient;
 		this.objectMapper = objectMapper;
@@ -48,84 +68,180 @@ public class PrioritizationService {
 		}
 
 		String projectKey = zephyrScaleClient.resolveProjectKey(project);
-		log.info("Prioritization started: project={}, projectKey={}, testCases={}", project, projectKey, testCaseKeys);
+		int sequence = artifactService.resolveNextSequence(projectKey);
+		var artifactFolder = artifactService.createArtifactFolder(projectKey, sequence);
 
-		List<TestCaseEnrichment> enrichments = enrichmentService.enrichAll(project, testCaseKeys);
-		logEnrichmentSummary(enrichments);
+		Map<Long, String> statusNames = loadStatusNames(projectKey);
+		Map<Long, String> priorityNames = loadPriorityNames(projectKey);
 
-		String promptPayload;
-		try {
-			promptPayload = objectMapper.writeValueAsString(enrichments);
-		} catch (JacksonException exception) {
-			throw new IllegalStateException("Failed to serialize test case data for LLM.", exception);
+		List<SuggestedTestCycle.SuggestedTestCaseEntry> entries = new ArrayList<>();
+		for (String testCaseKey : testCaseKeys) {
+			entries.add(processTestCase(
+					testCaseKey,
+					artifactFolder.path(),
+					statusNames,
+					priorityNames));
 		}
 
-		LlmPrioritizationResult llmResult = llmClient.prioritizeTestCases(promptPayload, testCaseKeys);
-		List<String> orderedKeys = validateAndNormalizeOrder(testCaseKeys, llmResult.testCases());
-		if (llmResult.testCases() == null || !orderedKeys.equals(llmResult.testCases())) {
-			log.warn("LLM test case order normalized: llm={}, final={}", llmResult.testCases(), orderedKeys);
-		}
+		String aiSortPayload = buildAiSortPayload(entries);
+		AiSortResponse aiSortResponse = llmClient.requestAiSort(aiSortPayload);
+		Map<String, Double> aiSortByKey = aiSortValidator.validateAndNormalize(
+				testCaseKeys,
+				toAiSortMap(aiSortResponse, testCaseKeys));
 
-		// Cycle key is always generated server-side (LLM may return placeholders like PROJECT-SR1).
-		String cycleKey = storage.nextSuggestedCycleKey(projectKey);
+		List<SuggestedTestCycle.SuggestedTestCaseEntry> finalEntries = entries.stream()
+				.map(entry -> new SuggestedTestCycle.SuggestedTestCaseEntry(
+						entry.key(),
+						entry.name(),
+						entry.weights(),
+						entry.metrics(),
+						aiSortByKey.getOrDefault(entry.key(), 0.0)))
+				.sorted(Comparator.comparingDouble(SuggestedTestCycle.SuggestedTestCaseEntry::aiSort).reversed())
+				.toList();
 
-		String cycleName = llmResult.suggestedTestCycleName();
+		String cycleName = aiSortResponse.suggestedTestCycleName();
 		if (cycleName == null || cycleName.isBlank()) {
-			cycleName = "Suggested cycle " + cycleKey;
+			cycleName = "Suggested cycle " + artifactFolder.cycleKey();
 		}
 
-		var cycle = SuggestedTestCycle.create(cycleKey, cycleName, orderedKeys);
-		storage.add(cycle);
-		log.info(
-				"Saved suggested test cycle to {}: key={}, name={}, testCases={}",
-				storage.suggestedCyclesFilePath(),
-				cycleKey,
+		var cycle = SuggestedTestCycle.create(
+				artifactFolder.cycleKey(),
 				cycleName,
-				orderedKeys);
+				projectKey,
+				artifactFolder.createdAtMillis(),
+				artifactFolder.folderName(),
+				finalEntries);
+		storage.save(cycle);
+		log.info(
+				"Saved suggested test cycle to {}: key={}, name={}, tests={}",
+				storage.cyclesDirectory().resolve(cycle.suggestedTestCycleKey() + ".json"),
+				cycle.suggestedTestCycleKey(),
+				cycleName,
+				finalEntries.size());
 		return cycle;
 	}
 
-	private void logEnrichmentSummary(List<TestCaseEnrichment> enrichments) {
-		for (TestCaseEnrichment enrichment : enrichments) {
-			log.info(
-					"Enriched {} ({}): {} execution(s), {} linked issue(s)",
-					enrichment.key(),
-					enrichment.name(),
-					enrichment.recentExecutions().size(),
-					enrichment.linkedIssues().size());
-			for (TestCaseEnrichment.LinkedIssueSummary issue : enrichment.linkedIssues()) {
-				log.info(
-						"Linked issue for {}: {} — {} [status={}, priority={}]",
-						enrichment.key(),
-						issue.issueKey(),
-						issue.summary(),
-						issue.status(),
-						issue.priority());
-				if (issue.description() != null && !issue.description().isBlank()) {
-					log.info("Issue {} description:\n{}", issue.issueKey(), issue.description());
-				}
-			}
+	private SuggestedTestCycle.SuggestedTestCaseEntry processTestCase(
+			String testCaseKey,
+			java.nio.file.Path artifactFolder,
+			Map<Long, String> statusNames,
+			Map<Long, String> priorityNames) {
+		TestCaseDetailDto testCase = zephyrScaleClient.getTestCase(testCaseKey);
+		List<TestExecutionDto> executions = loadAllExecutions(testCaseKey);
+
+		String promptMarkdown = promptRenderer.render(testCase, executions, statusNames, priorityNames);
+		artifactService.writePromptFile(artifactFolder, testCaseKey, promptMarkdown);
+
+		Map<String, Double> weights = weightValidator.validateAndNormalize(
+				llmClient.requestAttributeWeights(promptMarkdown));
+
+		try {
+			artifactService.writeResponseFile(
+					artifactFolder,
+					testCaseKey,
+					objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(weights));
+		} catch (JacksonException exception) {
+			throw new IllegalStateException("Failed to serialize attribute weights response.", exception);
+		}
+
+		SuggestedTestCycle.TestMetrics metrics = buildMetrics(executions, statusNames);
+		return new SuggestedTestCycle.SuggestedTestCaseEntry(
+				testCaseKey,
+				testCase.name(),
+				weights,
+				metrics,
+				0.0);
+	}
+
+	private SuggestedTestCycle.TestMetrics buildMetrics(
+			List<TestExecutionDto> executions,
+			Map<Long, String> statusNames) {
+		int failuresCount = (int) executions.stream()
+				.filter(execution -> execution.links() != null
+						&& execution.links().issues() != null
+						&& !execution.links().issues().isEmpty())
+				.count();
+		TestExecutionDto latest = executions.stream()
+				.max(Comparator.comparing(
+						TestExecutionDto::actualEndDate,
+						Comparator.nullsLast(String::compareTo)))
+				.orElse(null);
+		String lastStatus = "-";
+		if (latest != null && latest.testExecutionStatus() != null) {
+			lastStatus = statusNames.getOrDefault(
+					latest.testExecutionStatus().id(),
+					"Status-" + latest.testExecutionStatus().id());
+		}
+		long totalExecutionTime = executions.stream()
+				.mapToLong(execution -> execution.executionTime() == null ? 0L : execution.executionTime())
+				.sum();
+		return new SuggestedTestCycle.TestMetrics(
+				executions.size(),
+				failuresCount,
+				lastStatus,
+				totalExecutionTime);
+	}
+
+	private String buildAiSortPayload(List<SuggestedTestCycle.SuggestedTestCaseEntry> entries) {
+		try {
+			return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(entries);
+		} catch (JacksonException exception) {
+			throw new IllegalStateException("Failed to serialize AI sort payload.", exception);
 		}
 	}
 
-	private List<String> validateAndNormalizeOrder(List<String> inputKeys, List<String> llmOrderedKeys) {
-		Set<String> expected = new HashSet<>(inputKeys);
-		List<String> result = new ArrayList<>();
-
-		if (llmOrderedKeys != null) {
-			for (String key : llmOrderedKeys) {
-				if (expected.contains(key) && !result.contains(key)) {
-					result.add(key);
-				}
+	private Map<String, Double> toAiSortMap(AiSortResponse response, List<String> expectedKeys) {
+		Map<String, Double> map = new LinkedHashMap<>();
+		if (response.tests() != null) {
+			for (AiSortResponse.AiSortTestEntry entry : response.tests()) {
+				map.put(entry.key(), entry.aiSort());
 			}
 		}
-
-		for (String key : inputKeys) {
-			if (!result.contains(key)) {
-				result.add(key);
-			}
+		for (String key : expectedKeys) {
+			map.putIfAbsent(key, 0.0);
 		}
-		return result;
+		return map;
 	}
 
+	private Map<Long, String> loadStatusNames(String projectKey) {
+		Map<Long, String> names = new HashMap<>();
+		int startAt = 0;
+		boolean isLast;
+		do {
+			ZephyrPage<StatusDto> page = zephyrScaleClient.getStatuses(projectKey, startAt, EXECUTION_PAGE_SIZE);
+			if (page.values() != null) {
+				for (StatusDto status : page.values()) {
+					names.put(status.id(), status.name());
+				}
+			}
+			isLast = page.isLast();
+			startAt += page.maxResults() > 0 ? page.maxResults() : EXECUTION_PAGE_SIZE;
+		} while (!isLast);
+		return names;
+	}
+
+	private Map<Long, String> loadPriorityNames(String projectKey) {
+		ZephyrPage<PriorityDto> page = zephyrScaleClient.getPriorities(projectKey);
+		if (page.values() == null) {
+			return Map.of();
+		}
+		return page.values().stream()
+				.collect(Collectors.toMap(PriorityDto::id, PriorityDto::name, (left, right) -> left));
+	}
+
+	private List<TestExecutionDto> loadAllExecutions(String testCaseKey) {
+		List<TestExecutionDto> allExecutions = new ArrayList<>();
+		int startAt = 0;
+		boolean isLast;
+		do {
+			ZephyrPage<TestExecutionDto> page = zephyrScaleClient.getTestExecutions(
+					testCaseKey, startAt, EXECUTION_PAGE_SIZE);
+			if (page.values() != null) {
+				allExecutions.addAll(page.values());
+			}
+			isLast = page.isLast();
+			startAt += page.maxResults() > 0 ? page.maxResults() : EXECUTION_PAGE_SIZE;
+		} while (!isLast);
+		return allExecutions;
+	}
 }

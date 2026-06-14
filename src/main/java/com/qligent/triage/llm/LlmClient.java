@@ -1,6 +1,7 @@
 package com.qligent.triage.llm;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,7 @@ import org.springframework.web.client.RestClient;
 import com.qligent.triage.config.LlmProperties;
 import tools.jackson.databind.ObjectMapper;
 
-import com.qligent.triage.llm.dto.LlmPrioritizationResult;
+import com.qligent.triage.llm.dto.AiSortResponse;
 import com.qligent.triage.llm.dto.OllamaChatRequest;
 import com.qligent.triage.llm.dto.OllamaChatResponse;
 
@@ -55,11 +56,35 @@ public class LlmClient {
 		return response.message().content().trim();
 	}
 
-	public LlmPrioritizationResult prioritizeTestCases(String testCasesJson, List<String> inputKeys) {
-		String userPrompt = promptTemplateService.format(String.join(", ", inputKeys), testCasesJson);
+	public Map<String, Double> requestAttributeWeights(String testCaseDataMarkdown) {
+		String userPrompt = promptTemplateService.formatWeightsPrompt(testCaseDataMarkdown);
+		String rawResponse = chatJson(userPrompt, "attribute weights");
+		try {
+			var parsed = objectMapper.readValue(rawResponse, com.qligent.triage.llm.dto.AttributeWeightsResponse.class);
+			return parsed.asMap();
+		} catch (Exception exception) {
+			log.error("Failed to parse attribute weights JSON. Raw response:\n{}", rawResponse);
+			throw new IllegalStateException("Failed to parse attribute weights JSON.", exception);
+		}
+	}
+
+	public AiSortResponse requestAiSort(String testCasesJson) {
+		String userPrompt = promptTemplateService.formatAiSortPrompt(testCasesJson);
+		String rawResponse = chatJson(userPrompt, "AI sort");
+		try {
+			return objectMapper.readValue(rawResponse, AiSortResponse.class);
+		} catch (Exception exception) {
+			log.error("Failed to parse AI sort JSON. Raw response:\n{}", rawResponse);
+			throw new IllegalStateException("Failed to parse AI sort JSON.", exception);
+		}
+	}
+
+	private String chatJson(String userPrompt, String purpose) {
 		log.info(
-				"Sending prioritization prompt to LLM: model={}, promptChars={}",
+				"Sending {} prompt to LLM: model={}, numCtx={}, promptChars={}",
+				purpose,
 				properties.model(),
+				properties.numCtx(),
 				userPrompt.length());
 		log.info("LLM prompt:\n{}", userPrompt);
 
@@ -67,7 +92,8 @@ public class LlmClient {
 				properties.model(),
 				false,
 				"json",
-				List.of(new OllamaChatRequest.Message("user", userPrompt))
+				List.of(new OllamaChatRequest.Message("user", userPrompt)),
+				new OllamaChatRequest.Options(properties.numCtx())
 		);
 
 		var response = restClient.post()
@@ -77,22 +103,11 @@ public class LlmClient {
 				.body(OllamaChatResponse.class);
 
 		if (response == null || response.message() == null || response.message().content() == null) {
-			throw new IllegalStateException("LLM returned empty prioritization response.");
+			throw new IllegalStateException("LLM returned empty " + purpose + " response.");
 		}
 
 		String rawResponse = response.message().content().trim();
 		log.info("LLM raw response:\n{}", rawResponse);
-
-		try {
-			LlmPrioritizationResult result = objectMapper.readValue(rawResponse, LlmPrioritizationResult.class);
-			log.info(
-					"LLM prioritization response: suggestedTestCycleName={}, testCases={}",
-					result.suggestedTestCycleName(),
-					result.testCases());
-			return result;
-		} catch (Exception exception) {
-			log.error("Failed to parse LLM prioritization JSON. Raw response:\n{}", rawResponse);
-			throw new IllegalStateException("Failed to parse LLM prioritization JSON.", exception);
-		}
+		return rawResponse;
 	}
 }

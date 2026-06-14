@@ -6,8 +6,17 @@ public record OllamaChatRequest(
 		String model,
 		boolean stream,
 		String format,
-		List<Message> messages
+		List<Message> messages,
+		Options options
 ) {
+
+	public OllamaChatRequest(String model, boolean stream, String format, List<Message> messages) {
+		this(model, stream, format, messages, null);
+	}
+
 	public record Message(String role, String content) {
+	}
+
+	public record Options(int num_ctx) {
 	}
 }
