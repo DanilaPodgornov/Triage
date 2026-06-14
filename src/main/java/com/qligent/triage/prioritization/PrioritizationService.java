@@ -63,6 +63,13 @@ public class PrioritizationService {
 	}
 
 	public SuggestedTestCycle prioritize(Project project, List<String> testCaseKeys) {
+		return prioritize(project, testCaseKeys, null);
+	}
+
+	public SuggestedTestCycle prioritize(
+			Project project,
+			List<String> testCaseKeys,
+			PrioritizationProgressListener progressListener) {
 		if (testCaseKeys == null || testCaseKeys.size() < 2) {
 			throw new IllegalArgumentException("At least two test cases are required for prioritization.");
 		}
@@ -75,14 +82,18 @@ public class PrioritizationService {
 		Map<Long, String> priorityNames = loadPriorityNames(projectKey);
 
 		List<SuggestedTestCycle.SuggestedTestCaseEntry> entries = new ArrayList<>();
-		for (String testCaseKey : testCaseKeys) {
+		int totalTests = testCaseKeys.size();
+		for (int index = 0; index < testCaseKeys.size(); index++) {
+			String testCaseKey = testCaseKeys.get(index);
 			entries.add(processTestCase(
 					testCaseKey,
 					artifactFolder.path(),
 					statusNames,
 					priorityNames));
+			notifyTestCompleted(progressListener, index + 1, totalTests);
 		}
 
+		notifyAiSortStarted(progressListener);
 		String aiSortPayload = buildAiSortPayload(entries);
 		AiSortResponse aiSortResponse = llmClient.requestAiSort(aiSortPayload);
 		Map<String, Double> aiSortByKey = aiSortValidator.validateAndNormalize(
@@ -156,6 +167,9 @@ public class PrioritizationService {
 	private SuggestedTestCycle.TestMetrics buildMetrics(
 			List<TestExecutionDto> executions,
 			Map<Long, String> statusNames) {
+		int failedExecutionsCount = (int) executions.stream()
+				.filter(execution -> isFailedExecution(execution, statusNames))
+				.count();
 		int failuresCount = (int) executions.stream()
 				.filter(execution -> execution.links() != null
 						&& execution.links().issues() != null
@@ -178,8 +192,32 @@ public class PrioritizationService {
 		return new SuggestedTestCycle.TestMetrics(
 				executions.size(),
 				failuresCount,
+				failedExecutionsCount,
 				lastStatus,
 				totalExecutionTime);
+	}
+
+	private static boolean isFailedExecution(TestExecutionDto execution, Map<Long, String> statusNames) {
+		if (execution.testExecutionStatus() == null) {
+			return false;
+		}
+		String statusName = statusNames.getOrDefault(execution.testExecutionStatus().id(), "").toLowerCase();
+		return statusName.contains("fail");
+	}
+
+	private static void notifyTestCompleted(
+			PrioritizationProgressListener progressListener,
+			int completedTests,
+			int totalTests) {
+		if (progressListener != null) {
+			progressListener.onTestResponseCompleted(completedTests, totalTests);
+		}
+	}
+
+	private static void notifyAiSortStarted(PrioritizationProgressListener progressListener) {
+		if (progressListener != null) {
+			progressListener.onAiSortStarted();
+		}
 	}
 
 	private String buildAiSortPayload(List<SuggestedTestCycle.SuggestedTestCaseEntry> entries) {

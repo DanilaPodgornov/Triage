@@ -105,9 +105,6 @@ public class WebExceptionHandler {
 	}
 
 	private String resolveActiveTab(String requestUri) {
-		if (requestUri.contains("/testcycles")) {
-			return "testcycles";
-		}
 		if (requestUri.contains("/suggestedcycles")) {
 			return "suggestedcycles";
 		}

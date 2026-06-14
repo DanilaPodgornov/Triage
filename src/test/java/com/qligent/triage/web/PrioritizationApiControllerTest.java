@@ -3,7 +3,7 @@ package com.qligent.triage.web;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.lenient;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,10 +18,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.ResourceAccessException;
 
 import com.qligent.triage.config.TriageProperties;
 import com.qligent.triage.model.Project;
+import com.qligent.triage.prioritization.PrioritizationJobService;
+import com.qligent.triage.prioritization.PrioritizationJobService.PrioritizationJob;
+import com.qligent.triage.prioritization.PrioritizationJobService.PrioritizationJobStatus;
 import com.qligent.triage.prioritization.PrioritizationService;
 
 @WebMvcTest(controllers = PrioritizationApiController.class)
@@ -32,6 +34,9 @@ class PrioritizationApiControllerTest {
 	private MockMvc mockMvc;
 
 	@MockitoBean
+	private PrioritizationJobService prioritizationJobService;
+
+	@MockitoBean
 	private PrioritizationService prioritizationService;
 
 	@MockitoBean
@@ -39,37 +44,42 @@ class PrioritizationApiControllerTest {
 
 	@BeforeEach
 	void stubTriageDefaults() {
-		lenient().when(triageProperties.theme()).thenReturn(new TriageProperties.Theme("system"));
-		lenient().when(triageProperties.locale()).thenReturn(new TriageProperties.Locale("en"));
+		org.mockito.Mockito.lenient().when(triageProperties.theme()).thenReturn(new TriageProperties.Theme("system"));
+		org.mockito.Mockito.lenient().when(triageProperties.locale()).thenReturn(new TriageProperties.Locale("en"));
 	}
 
 	@Test
-	void shouldReturnJsonErrorWhenOllamaIsUnavailable() throws Exception {
-		given(prioritizationService.prioritize(eq(Project.B2C), any()))
-				.willThrow(new ResourceAccessException("Connection refused: localhost:11434"));
+	void shouldStartPrioritizationJob() throws Exception {
+		PrioritizationJob job = org.mockito.Mockito.mock(PrioritizationJob.class);
+		given(job.id()).willReturn("job-1");
+		given(job.totalTests()).willReturn(2);
+		given(prioritizationJobService.start(eq(Project.B2C), any())).willReturn(job);
 
 		mockMvc.perform(post("/api/prioritize")
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
 								{"project":"B2C","testCaseKeys":["SQM-T1","SQM-T2"]}
 								"""))
-				.andExpect(status().isBadGateway())
-				.andExpect(jsonPath("$.message").value(
-						"Ollama is not available or did not respond. Start Ollama and ensure model qwen2.5:3b is installed (ollama pull qwen2.5:3b)."));
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.jobId").value("job-1"))
+				.andExpect(jsonPath("$.totalTests").value(2));
 	}
 
 	@Test
-	void shouldReturnJsonErrorWhenLlmResponseCannotBeParsed() throws Exception {
-		given(prioritizationService.prioritize(eq(Project.B2C), any()))
-				.willThrow(new IllegalStateException("Failed to parse LLM prioritization JSON."));
+	void shouldReturnJobStatus() throws Exception {
+		PrioritizationJob job = org.mockito.Mockito.mock(PrioritizationJob.class);
+		given(job.status()).willReturn(PrioritizationJobStatus.RUNNING);
+		given(job.completedTests()).willReturn(1);
+		given(job.totalTests()).willReturn(2);
+		given(job.elapsedMillis()).willReturn(5000L);
+		given(job.redirectUrl()).willReturn(null);
+		given(job.errorMessage()).willReturn(null);
+		given(prioritizationJobService.getJob("job-1")).willReturn(job);
 
-		mockMvc.perform(post("/api/prioritize")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{"project":"B2C","testCaseKeys":["SQM-T1","SQM-T2"]}
-								"""))
-				.andExpect(status().isInternalServerError())
-				.andExpect(jsonPath("$.message").value("Failed to parse LLM prioritization JSON."));
+		mockMvc.perform(get("/api/prioritize/jobs/job-1"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("RUNNING"))
+				.andExpect(jsonPath("$.completedTests").value(1))
+				.andExpect(jsonPath("$.totalTests").value(2));
 	}
-
 }

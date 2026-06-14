@@ -88,6 +88,7 @@ public record SuggestedTestCycle(
 	public record TestMetrics(
 			int executionsCount,
 			int failuresCount,
+			int failedExecutionsCount,
 			String lastExecutionStatus,
 			long executionTimeMs
 	) {

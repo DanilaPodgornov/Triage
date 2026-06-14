@@ -31,7 +31,7 @@ class SuggestedTestCycleStorageTest {
 						"SQM-T1",
 						"Login test",
 						Map.of("priority", 0.5, "status", 0.5),
-						new SuggestedTestCycle.TestMetrics(2, 1, "Fail", 1000L),
+						new SuggestedTestCycle.TestMetrics(2, 1, 1, "Fail", 1000L),
 						0.6)));
 
 		storage.save(cycle);

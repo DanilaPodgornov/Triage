@@ -235,29 +235,125 @@ document.addEventListener('DOMContentLoaded', () => {
         prioritizeBtn.disabled = true;
         prioritizeBtn.textContent = t('testcases.prioritizing');
 
+        const modal = document.getElementById('prioritize-progress-modal');
+        const progressText = document.getElementById('prioritize-progress-text');
+        const progressTimer = document.getElementById('prioritize-progress-timer');
+        let pollTimerId = null;
+        let displayTimerId = null;
+        const startedAt = Date.now();
+
+        function formatElapsed(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay(elapsedMillis) {
+            if (progressTimer) {
+                progressTimer.textContent = t('testcases.progress.elapsed', {
+                    time: formatElapsed(elapsedMillis ?? (Date.now() - startedAt))
+                });
+            }
+        }
+
+        function showProgressModal() {
+            if (!modal) {
+                return;
+            }
+            modal.hidden = false;
+            updateTimerDisplay(0);
+            if (progressText) {
+                progressText.textContent = t('testcases.progress.tests', { completed: 0, total: testCaseKeys.length });
+            }
+            displayTimerId = window.setInterval(() => updateTimerDisplay(null), 1000);
+        }
+
+        function hideProgressModal() {
+            if (modal) {
+                modal.hidden = true;
+            }
+            if (pollTimerId != null) {
+                window.clearInterval(pollTimerId);
+                pollTimerId = null;
+            }
+            if (displayTimerId != null) {
+                window.clearInterval(displayTimerId);
+                displayTimerId = null;
+            }
+        }
+
         try {
-            const response = await fetch('/api/prioritize', {
+            showProgressModal();
+
+            const startResponse = await fetch('/api/prioritize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ project, testCaseKeys })
             });
 
-            const responseText = await response.text();
-            let result;
+            const startText = await startResponse.text();
+            let startResult;
             try {
-                result = JSON.parse(responseText);
+                startResult = JSON.parse(startText);
             } catch (parseError) {
                 throw new Error(t('testcases.prioritizeFailedInvalidResponse'));
             }
 
-            if (!response.ok) {
-                throw new Error(result.message || t('testcases.prioritizeFailedGeneric'));
+            if (!startResponse.ok) {
+                throw new Error(startResult.message || t('testcases.prioritizeFailedGeneric'));
             }
 
-            clearStoredSelection();
-            window.location.href = result.redirectUrl;
+            const jobId = startResult.jobId;
+            const totalTests = startResult.totalTests ?? testCaseKeys.length;
+
+            await new Promise((resolve, reject) => {
+                pollTimerId = window.setInterval(async () => {
+                    try {
+                        const statusResponse = await fetch(`/api/prioritize/jobs/${encodeURIComponent(jobId)}`);
+                        const statusText = await statusResponse.text();
+                        const status = JSON.parse(statusText);
+
+                        if (!statusResponse.ok) {
+                            throw new Error(status.message || t('testcases.prioritizeFailedGeneric'));
+                        }
+
+                        updateTimerDisplay(status.elapsedMillis);
+
+                        if (status.status === 'AI_SORT') {
+                            if (progressText) {
+                                progressText.textContent = t('testcases.progress.aiSort');
+                            }
+                        } else if (progressText) {
+                            progressText.textContent = t('testcases.progress.tests', {
+                                completed: status.completedTests ?? 0,
+                                total: status.totalTests ?? totalTests
+                            });
+                        }
+
+                        if (status.status === 'COMPLETED') {
+                            window.clearInterval(pollTimerId);
+                            pollTimerId = null;
+                            resolve(status);
+                        } else if (status.status === 'FAILED') {
+                            window.clearInterval(pollTimerId);
+                            pollTimerId = null;
+                            reject(new Error(status.errorMessage || t('testcases.prioritizeFailedGeneric')));
+                        }
+                    } catch (pollError) {
+                        window.clearInterval(pollTimerId);
+                        pollTimerId = null;
+                        reject(pollError);
+                    }
+                }, 500);
+            }).then((status) => {
+                hideProgressModal();
+                clearStoredSelection();
+                window.location.href = status.redirectUrl;
+            });
         } catch (error) {
             console.error(error);
+            hideProgressModal();
             alert(error.message || t('testcases.prioritizeFailedGeneric'));
             prioritizeBtn.textContent = t(originalKey);
             updateUi();

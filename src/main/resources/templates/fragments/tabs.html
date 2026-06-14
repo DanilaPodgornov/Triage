@@ -4,9 +4,6 @@
             <a th:href="@{/testcases(project=${project})}"
                th:classappend="${activeTab == 'testcases'} ? 'active' : ''"
                class="tab-link" data-i18n="nav.testCases">Test Cases</a>
-            <a th:href="@{/testcycles(project=${project})}"
-               th:classappend="${activeTab == 'testcycles'} ? 'active' : ''"
-               class="tab-link" data-i18n="nav.testCycles">Test Cycles</a>
             <a th:href="@{/suggestedcycles(project=${project})}"
                th:classappend="${activeTab == 'suggestedcycles'} ? 'active' : ''"
                class="tab-link" data-i18n="nav.suggestedCycles">Suggested Test Cycles</a>

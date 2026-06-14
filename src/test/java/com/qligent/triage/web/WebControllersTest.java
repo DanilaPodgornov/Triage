@@ -37,7 +37,6 @@ import com.qligent.triage.web.model.TestCasesPageView;
 @WebMvcTest(controllers = {
 		HomeController.class,
 		TestCaseController.class,
-		StubTabController.class,
 		SuggestedTestCycleController.class,
 		SettingsController.class
 })
@@ -146,14 +145,6 @@ class WebControllersTest {
 	}
 
 	@Test
-	void testCyclesStubRenders() throws Exception {
-		mockMvc.perform(get("/testcycles").param("project", "B2B"))
-				.andExpect(status().isOk())
-				.andExpect(view().name("stub-tab"))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("under development")));
-	}
-
-	@Test
 	void settingsPageRenders() throws Exception {
 		mockMvc.perform(get("/settings").param("project", "B2C"))
 				.andExpect(status().isOk())
@@ -176,7 +167,7 @@ class WebControllersTest {
 								"SQM-T1",
 								"Login",
 								Map.of("priority", 0.5, "status", 0.5),
-								new SuggestedTestCycle.TestMetrics(1, 0, "Pass", 100L),
+								new SuggestedTestCycle.TestMetrics(1, 0, 0, "Pass", 100L),
 								1.0)))
 		));
 

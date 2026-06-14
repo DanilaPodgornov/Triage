@@ -43,10 +43,14 @@ public class TestCasePromptRenderer {
 				.limit(RECENT_EXECUTIONS_LIMIT)
 				.toList();
 		for (TestExecutionDto execution : recent) {
-			builder.append("\n### Execution ").append(execution.key()).append('\n');
-			builder.append("- Status: ")
-					.append(formatExecutionStatus(execution.testExecutionStatus(), statusNames))
-					.append('\n');
+			String statusLabel = formatExecutionStatus(execution.testExecutionStatus(), statusNames);
+			boolean failed = isFailedStatus(statusLabel);
+			builder.append("\n### Execution ").append(execution.key());
+			if (failed) {
+				builder.append(" [FAILED]");
+			}
+			builder.append('\n');
+			builder.append("- Status: ").append(statusLabel).append('\n');
 			builder.append("- End date: ").append(nullToDash(execution.actualEndDate())).append('\n');
 			builder.append("- Execution time (ms): ").append(execution.executionTime() == null ? 0 : execution.executionTime()).append('\n');
 			builder.append("- Comment: ").append(nullToDash(execution.comment())).append('\n');
@@ -94,5 +98,9 @@ public class TestCasePromptRenderer {
 
 	private static String nullToDash(String value) {
 		return value == null || value.isBlank() ? "-" : value;
+	}
+
+	private static boolean isFailedStatus(String statusLabel) {
+		return statusLabel != null && statusLabel.toLowerCase().contains("fail");
 	}
 }

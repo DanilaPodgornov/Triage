@@ -167,6 +167,15 @@
         </main>
     </div>
 
+    <div id="prioritize-progress-modal" class="progress-modal" hidden aria-live="polite" aria-busy="true">
+        <div class="progress-modal__panel">
+            <div class="progress-modal__spinner" aria-hidden="true"></div>
+            <h2 class="progress-modal__title" data-i18n="testcases.progress.title">Prioritizing test cases</h2>
+            <p id="prioritize-progress-text" class="progress-modal__text"></p>
+            <p id="prioritize-progress-timer" class="progress-modal__timer"></p>
+        </div>
+    </div>
+
     <script th:inline="javascript">
         window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
         window.__defaultLlmPrompt = /*[[${defaultLlmPrompt}]]*/ '';
