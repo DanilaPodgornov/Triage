@@ -46,7 +46,7 @@ class SuggestedTestCycleStorageBackwardCompatibilityTest {
 				""");
 
 		var storage = new SuggestedTestCycleStorage(
-				new TriageProperties(null, cyclesDir.toString(), null, null),
+				new TriageProperties(null, cyclesDir.toString(), 15, null, null),
 				new ObjectMapper());
 
 		var cycles = storage.findByProjectPrefix("SQM");
@@ -54,6 +54,10 @@ class SuggestedTestCycleStorageBackwardCompatibilityTest {
 		assertThat(cycles).hasSize(1);
 		assertThat(cycles.getFirst().tests().getFirst().metrics().failedExecutionsCount()).isZero();
 		assertThat(cycles.getFirst().tests().getFirst().metrics().failedExecutionsRatio()).isZero();
+		assertThat(cycles.getFirst().zephyrTestCycleKey()).isNull();
+		assertThat(cycles.getFirst().llm()).isEqualTo(SuggestedTestCycle.LEGACY_LLM);
+		assertThat(cycles.getFirst().aisortPromptVersion()).isEqualTo(SuggestedTestCycle.LEGACY_PROMPT_VERSION);
+		assertThat(cycles.getFirst().weightsPromptVersion()).isEqualTo(SuggestedTestCycle.LEGACY_PROMPT_VERSION);
 	}
 
 	@Test
@@ -87,7 +91,7 @@ class SuggestedTestCycleStorageBackwardCompatibilityTest {
 				""");
 
 		var storage = new SuggestedTestCycleStorage(
-				new TriageProperties(null, cyclesDir.toString(), null, null),
+				new TriageProperties(null, cyclesDir.toString(), 15, null, null),
 				new ObjectMapper());
 
 		var metrics = storage.findByKey("SQM-SR2").orElseThrow().tests().getFirst().metrics();

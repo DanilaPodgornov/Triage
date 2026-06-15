@@ -22,6 +22,7 @@ class SuggestedTestCycleStorageFilterTest {
 				new TriageProperties(
 						tempDir.resolve("llm").toString(),
 						tempDir.resolve("suggested_test_cycles").toString(),
+						15,
 						null,
 						null),
 				new ObjectMapper());

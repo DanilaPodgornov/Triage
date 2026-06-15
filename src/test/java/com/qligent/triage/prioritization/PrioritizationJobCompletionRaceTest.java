@@ -14,7 +14,7 @@ class PrioritizationJobCompletionRaceTest {
 
 	@Test
 	void shouldNotExposeCompletedStatusWithoutRedirectUrl() throws Exception {
-		var job = PrioritizationJobService.PrioritizationJob.running("job-1", 2);
+		var job = PrioritizationJobService.PrioritizationJob.running("job-1", 2, new PrioritizationCancellation());
 		var startGate = new CountDownLatch(1);
 		var doneGate = new CountDownLatch(1);
 		var violations = new AtomicInteger();

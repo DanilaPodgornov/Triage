@@ -24,26 +24,30 @@ public class LlmClient {
 
 	private final RestClient restClient;
 	private final LlmProperties properties;
+	private final LlmRuntimeSettings runtimeSettings;
 	private final ObjectMapper objectMapper;
 	private final LlmPromptTemplateService promptTemplateService;
 
 	public LlmClient(
 			RestClient llmRestClient,
 			LlmProperties properties,
+			LlmRuntimeSettings runtimeSettings,
 			ObjectMapper objectMapper,
 			LlmPromptTemplateService promptTemplateService) {
 		this.restClient = llmRestClient;
 		this.properties = properties;
+		this.runtimeSettings = runtimeSettings;
 		this.objectMapper = objectMapper;
 		this.promptTemplateService = promptTemplateService;
 	}
 
 	public String helloOneWord() {
 		var request = new OllamaChatRequest(
-				properties.model(),
+				runtimeSettings.resolveModel(),
 				false,
 				null,
-				List.of(new OllamaChatRequest.Message("user", "Say hello in one word"))
+				List.of(new OllamaChatRequest.Message("user", "Say hello in one word")),
+				new OllamaChatRequest.Options(runtimeSettings.numCtx())
 		);
 
 		var response = restClient.post()
@@ -94,17 +98,17 @@ public class LlmClient {
 		log.info(
 				"Sending {} prompt to LLM: model={}, numCtx={}, promptChars={}",
 				purpose,
-				properties.model(),
-				properties.numCtx(),
+				runtimeSettings.resolveModel(),
+				runtimeSettings.numCtx(),
 				userPrompt.length());
 		log.info("LLM prompt:\n{}", userPrompt);
 
 		var request = new OllamaChatRequest(
-				properties.model(),
+				runtimeSettings.resolveModel(),
 				false,
 				"json",
 				List.of(new OllamaChatRequest.Message("user", userPrompt)),
-				new OllamaChatRequest.Options(properties.numCtx())
+				new OllamaChatRequest.Options(runtimeSettings.numCtx())
 		);
 
 		var response = restClient.post()

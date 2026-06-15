@@ -15,13 +15,28 @@
                       data-sort-field=${cycle.sortField},
                       data-sort-direction=${cycle.sortDirection}">
         <div class="cycle-header">
-            <p class="cycle-meta"><strong>Key:</strong> <span th:text="${cycle.suggestedTestCycleKey}"></span></p>
-            <p class="cycle-meta"><strong>Status:</strong> <span id="cycle-status" th:text="${cycle.suggestedTestCycleStatus}"></span></p>
-            <p class="cycle-meta"><strong>Artifact folder:</strong> <span th:text="${cycle.artifactFolder}"></span></p>
+            <p class="cycle-meta"><strong data-i18n="suggested.detail.key">Key:</strong> <span th:text="${cycle.suggestedTestCycleKey}"></span></p>
+            <p class="cycle-meta cycle-meta--name">
+                <label for="cycle-name-input"><strong data-i18n="suggested.detail.name">Name:</strong></label>
+                <input type="text" id="cycle-name-input" class="cycle-name-input"
+                       th:value="${cycle.suggestedTestCycleName}"
+                       th:disabled="${cycle.suggestedTestCycleStatus == 'Sent'}">
+            </p>
+            <p class="cycle-meta"><strong data-i18n="suggested.detail.status">Status:</strong> <span id="cycle-status" th:text="${cycle.suggestedTestCycleStatus}"></span></p>
+            <p class="cycle-meta" id="zephyr-key-row"
+               th:classappend="${cycle.zephyrTestCycleKey == null} ? ' cycle-meta--hidden' : ''">
+                <strong data-i18n="suggested.detail.zephyrKey">Zephyr key:</strong>
+                <span id="zephyr-cycle-key" th:text="${cycle.zephyrTestCycleKey} ?: '-'"></span>
+            </p>
+            <p class="cycle-meta"><strong data-i18n="suggested.detail.artifactFolder">Artifact folder:</strong> <span th:text="${cycle.artifactFolder}"></span></p>
         </div>
 
         <div class="actions cycle-actions">
             <button type="button" id="save-sort-btn" class="btn btn-secondary" disabled data-i18n="suggested.save">Save</button>
+            <a th:href="@{/api/suggestedcycles/{key}/json(key=${cycle.suggestedTestCycleKey})}"
+               class="btn btn-secondary"
+               id="download-json-btn"
+               data-i18n="suggested.downloadJson">Save JSON</a>
             <button type="button" id="send-zephyr-btn" class="btn btn-primary"
                     th:disabled="${cycle.suggestedTestCycleStatus == 'Sent'}" data-i18n="suggested.send">Send to Zephyr</button>
             <a th:href="@{/suggestedcycles(project=${project})}" class="btn btn-link" data-i18n="suggested.back">Back to list</a>

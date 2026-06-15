@@ -3,6 +3,7 @@ package com.qligent.triage.prioritization;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -94,5 +95,30 @@ public class PrioritizationArtifactService {
 			String cycleKey,
 			long createdAtMillis
 	) {
+	}
+
+	public void deleteArtifactFolder(Path folder) {
+		if (folder == null) {
+			return;
+		}
+		Path normalizedFolder = folder.toAbsolutePath().normalize();
+		if (!normalizedFolder.startsWith(artifactsRoot)) {
+			throw new IllegalArgumentException("Artifact folder is outside artifacts root: " + folder);
+		}
+		if (!Files.exists(normalizedFolder)) {
+			return;
+		}
+		try (Stream<Path> walk = Files.walk(normalizedFolder)) {
+			walk.sorted(Comparator.reverseOrder()).forEach(path -> {
+				try {
+					Files.deleteIfExists(path);
+				} catch (IOException exception) {
+					throw new IllegalStateException("Failed to delete artifact path: " + path, exception);
+				}
+			});
+		} catch (IOException exception) {
+			throw new IllegalStateException("Failed to delete LLM artifact folder: " + normalizedFolder, exception);
+		}
+		log.info("Deleted LLM artifact folder: {}", normalizedFolder);
 	}
 }

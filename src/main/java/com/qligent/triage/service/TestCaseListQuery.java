@@ -8,7 +8,8 @@ public record TestCaseListQuery(
 		Optional<Long> statusId,
 		TestCaseSort sort,
 		SortDirection sortDirection,
-		int page
+		int page,
+		int pageSize
 ) {
 
 	public boolean requiresLocalProcessing() {

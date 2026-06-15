@@ -2,19 +2,49 @@ package com.qligent.triage.llm;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.DefaultResourceLoader;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.qligent.triage.config.LlmProperties;
 
+import tools.jackson.databind.ObjectMapper;
+
 class LlmPromptTemplateServiceTest {
+
+	@TempDir
+	Path tempDir;
+
+	private LlmPromptTemplateService service;
+
+	@BeforeEach
+	void setUp() throws Exception {
+		Path templatesDir = tempDir.resolve("prompt_templates");
+		Files.createDirectories(templatesDir);
+		Files.writeString(
+				templatesDir.resolve("qwen2.5-3b_ctx8192_weights-0.1.0.md"),
+				"Weights template {testCaseData}");
+		Files.writeString(
+				templatesDir.resolve("qwen2.5-3b_ctx8192_aisort-0.1.0.md"),
+				"AI sort template {testCasesJson}");
+
+		var properties = new LlmProperties(
+				"http://localhost:11434",
+				"qwen2.5:3b",
+				8192,
+				null,
+				templatesDir.toString(),
+				tempDir.resolve("settings.json").toString());
+		var runtimeSettings = new LlmRuntimeSettings(properties, new ObjectMapper());
+		var store = new PromptTemplateStore(properties);
+		service = new LlmPromptTemplateService(runtimeSettings, store);
+	}
 
 	@Test
 	void shouldLoadAndFormatWeightsTemplate() {
-		var service = new LlmPromptTemplateService(
-				new LlmProperties("http://localhost:11434", "qwen2.5:3b", 8192, null),
-				new DefaultResourceLoader());
-
 		assertThat(service.getTemplate()).contains("{testCaseData}");
 
 		String formatted = service.formatWeightsPrompt("## Test case: SQM-T1");
@@ -24,13 +54,9 @@ class LlmPromptTemplateServiceTest {
 
 	@Test
 	void shouldResolveTemplateResourceNameFromModelAndContext() {
-		var service = new LlmPromptTemplateService(
-				new LlmProperties("http://localhost:11434", "qwen2.5:3b", 8192, null),
-				new DefaultResourceLoader());
-
 		assertThat(service.templateResourceName(LlmPromptTemplateType.WEIGHTS))
-				.isEqualTo("qwen2.5-3b_ctx8192_weights.md");
+				.isEqualTo("qwen2.5-3b_ctx8192_weights-0.1.0.md");
 		assertThat(service.templateResourceName(LlmPromptTemplateType.AI_SORT))
-				.isEqualTo("qwen2.5-3b_ctx8192_aisort.md");
+				.isEqualTo("qwen2.5-3b_ctx8192_aisort-0.1.0.md");
 	}
 }

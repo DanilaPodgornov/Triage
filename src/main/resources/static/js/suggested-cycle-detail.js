@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-sort-btn');
     const sendBtn = document.getElementById('send-zephyr-btn');
     const statusEl = document.getElementById('cycle-status');
+    const nameInput = document.getElementById('cycle-name-input');
+    const zephyrKeyRow = document.getElementById('zephyr-key-row');
+    const zephyrKeyEl = document.getElementById('zephyr-cycle-key');
     const testsJsonEl = document.getElementById('suggested-cycle-tests-json');
 
     if (!app || !tableBody || !saveBtn || !sendBtn || !testsJsonEl) {
@@ -16,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let sortDirection = normalizeDirection(app.dataset.sortDirection || 'DESC');
     let savedSortField = sortField;
     let savedSortDirection = sortDirection;
+    let savedName = nameInput ? nameInput.value : '';
 
     let tests = [];
     try {
@@ -42,11 +46,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    if (nameInput) {
+        nameInput.addEventListener('input', updateButtonsState);
+    }
+
     saveBtn.addEventListener('click', async () => {
         const response = await fetch(`/api/suggestedcycles/${encodeURIComponent(cycleKey)}/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sortField, sortDirection })
+            body: JSON.stringify({
+                sortField,
+                sortDirection,
+                suggestedTestCycleName: nameInput ? nameInput.value : null
+            })
         });
         if (!response.ok) {
             alert('Failed to save sort state.');
@@ -56,23 +68,54 @@ document.addEventListener('DOMContentLoaded', () => {
         app.dataset.sortDirection = sortDirection;
         savedSortField = sortField;
         savedSortDirection = sortDirection;
+        if (nameInput) {
+            savedName = nameInput.value;
+            document.title = `${nameInput.value} — Triage`;
+        }
         updateButtonsState();
     });
 
     sendBtn.addEventListener('click', async () => {
+        sendBtn.disabled = true;
         const response = await fetch(`/api/suggestedcycles/${encodeURIComponent(cycleKey)}/send`, {
             method: 'POST'
         });
         if (!response.ok) {
-            alert('Failed to send test cycle.');
+            sendBtn.disabled = app.dataset.status === 'Sent';
+            let message = 'Failed to send test cycle.';
+            try {
+                const errorBody = await response.json();
+                if (errorBody?.message) {
+                    message = errorBody.message;
+                }
+            } catch (error) {
+                // keep default message
+            }
+            alert(message);
             return;
+        }
+        let zephyrTestCycleKey = '';
+        try {
+            const body = await response.json();
+            zephyrTestCycleKey = body?.zephyrTestCycleKey || '';
+        } catch (error) {
+            console.error('Failed to parse send-to-Zephyr response.', error);
         }
         if (statusEl) {
             statusEl.textContent = 'Sent';
         }
+        if (zephyrKeyEl && zephyrTestCycleKey) {
+            zephyrKeyEl.textContent = zephyrTestCycleKey;
+        }
+        if (zephyrKeyRow && zephyrTestCycleKey) {
+            zephyrKeyRow.classList.remove('cycle-meta--hidden');
+        }
         app.dataset.status = 'Sent';
         sendBtn.disabled = true;
         saveBtn.disabled = true;
+        if (nameInput) {
+            nameInput.disabled = true;
+        }
     });
 
     function renderTable() {
@@ -171,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isDirty() {
-        return sortField !== savedSortField || sortDirection !== savedSortDirection;
+        const nameChanged = nameInput ? nameInput.value !== savedName : false;
+        return sortField !== savedSortField || sortDirection !== savedSortDirection || nameChanged;
     }
 
     function updateButtonsState() {

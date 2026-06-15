@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildSelectionStorageKey() {
         const params = new URLSearchParams(window.location.search);
         params.delete('page');
+        params.delete('size');
         const pairs = [];
         params.forEach((value, key) => {
             pairs.push([key, value]);
@@ -129,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         updateEmptyRowColspan();
-        updateTableScrollState();
+        syncScrollViewportMetrics();
     }
 
     function updateEmptyRowColspan() {
@@ -172,13 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
         applyColumnVisibility(visibility);
     }
 
-    function updateTableScrollState() {
-        if (!tableScroll || !table) {
+    function syncScrollViewportMetrics() {
+        if (!tableScroll || !table || !tableScroll.classList.contains('is-scrollable-y')) {
             return;
         }
-        const needsScroll = table.scrollWidth > tableScroll.clientWidth + 1;
-        tableScroll.classList.toggle('is-scrollable', needsScroll);
-        tableScroll.style.overflowX = needsScroll ? 'auto' : 'hidden';
+        const headerRow = table.querySelector('thead tr');
+        const bodyRow = table.querySelector('tbody tr .testcase-checkbox')?.closest('tr');
+        if (headerRow) {
+            tableScroll.style.setProperty('--testcases-header-height', `${headerRow.getBoundingClientRect().height}px`);
+        }
+        if (bodyRow) {
+            tableScroll.style.setProperty('--testcases-row-height', `${bodyRow.getBoundingClientRect().height}px`);
+        }
     }
 
     document.querySelectorAll('.testcase-checkbox').forEach(checkbox => {
@@ -213,15 +219,25 @@ document.addEventListener('DOMContentLoaded', () => {
     syncCheckboxesFromSelection();
     updateUi();
     initColumnToggles();
+    syncScrollViewportMetrics();
 
-    window.addEventListener('resize', updateTableScrollState);
+    const rowsPerPageSelect = document.getElementById('rows-per-page');
+    if (rowsPerPageSelect) {
+        rowsPerPageSelect.addEventListener('change', () => {
+            const params = new URLSearchParams(window.location.search);
+            params.set('size', rowsPerPageSelect.value);
+            params.set('page', '0');
+            window.location.search = params.toString();
+        });
+    }
+
+    window.addEventListener('resize', syncScrollViewportMetrics);
     document.addEventListener('triage:locale-changed', () => {
         updateUi();
         if (window.TriageI18n) {
             window.TriageI18n.applyTranslations(app || document);
         }
     });
-    document.addEventListener('triage:i18n-applied', updateTableScrollState);
 
     prioritizeBtn.addEventListener('click', async () => {
         const project = app?.dataset.project || 'B2C';
@@ -238,8 +254,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('prioritize-progress-modal');
         const progressText = document.getElementById('prioritize-progress-text');
         const progressTimer = document.getElementById('prioritize-progress-timer');
+        const cancelBtn = document.getElementById('prioritize-cancel-btn');
         let pollTimerId = null;
         let displayTimerId = null;
+        let cancelClickHandler = null;
         const startedAt = Date.now();
 
         function formatElapsed(ms) {
@@ -281,6 +299,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.clearInterval(displayTimerId);
                 displayTimerId = null;
             }
+            if (cancelBtn && cancelClickHandler) {
+                cancelBtn.removeEventListener('click', cancelClickHandler);
+                cancelClickHandler = null;
+                cancelBtn.disabled = false;
+            }
+        }
+
+        function restorePrioritizeButton() {
+            prioritizeBtn.textContent = t(originalKey);
+            updateUi();
         }
 
         try {
@@ -310,6 +338,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const totalTests = startResult.totalTests ?? testCaseKeys.length;
 
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+                cancelClickHandler = async () => {
+                    cancelBtn.disabled = true;
+                    try {
+                        await fetch(`/api/prioritize/jobs/${encodeURIComponent(jobId)}`, { method: 'DELETE' });
+                    } catch (cancelError) {
+                        console.error(cancelError);
+                        cancelBtn.disabled = false;
+                    }
+                };
+                cancelBtn.addEventListener('click', cancelClickHandler);
+            }
+
             function resolveRedirectUrl(jobStatus) {
                 if (jobStatus.redirectUrl) {
                     return jobStatus.redirectUrl;
@@ -336,10 +378,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         progressText.textContent = t('testcases.progress.aiSort');
                     }
                 } else if (progressText) {
-                    progressText.textContent = t('testcases.progress.tests', {
-                        completed: jobStatus.completedTests ?? 0,
-                        total: jobStatus.totalTests ?? totalTests
-                    });
+                    const completed = jobStatus.completedTests ?? 0;
+                    const total = jobStatus.totalTests ?? totalTests;
+                    const current = jobStatus.currentTest ?? 0;
+                    if (current > completed) {
+                        progressText.textContent = t('testcases.progress.processing', {
+                            current,
+                            total,
+                            key: jobStatus.currentTestCaseKey || ''
+                        });
+                    } else {
+                        progressText.textContent = t('testcases.progress.tests', { completed, total });
+                    }
                 }
 
                 if (jobStatus.status === 'COMPLETED') {
@@ -348,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error(t('testcases.prioritizeFailedInvalidResponse'));
                     }
                     return { ...jobStatus, redirectUrl };
+                }
+                if (jobStatus.status === 'CANCELLED') {
+                    return { cancelled: true };
                 }
                 if (jobStatus.status === 'FAILED') {
                     throw new Error(jobStatus.errorMessage || t('testcases.prioritizeFailedGeneric'));
@@ -383,6 +436,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 pollTimerId = window.setInterval(pollOnce, 500);
             }).then((jobStatus) => {
                 hideProgressModal();
+                if (jobStatus.cancelled) {
+                    restorePrioritizeButton();
+                    return;
+                }
                 clearStoredSelection();
                 window.location.href = jobStatus.redirectUrl;
             });
@@ -390,8 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             hideProgressModal();
             alert(error.message || t('testcases.prioritizeFailedGeneric'));
-            prioritizeBtn.textContent = t(originalKey);
-            updateUi();
+            restorePrioritizeButton();
         }
     });
 });

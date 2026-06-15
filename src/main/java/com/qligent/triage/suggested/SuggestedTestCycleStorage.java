@@ -94,4 +94,12 @@ public class SuggestedTestCycleStorage {
 	private Path cycleFile(String cycleKey) {
 		return cyclesDir.resolve(cycleKey + ".json");
 	}
+
+	public Path cycleJsonPath(String cycleKey) {
+		Path file = cycleFile(cycleKey).normalize();
+		if (!file.startsWith(cyclesDir)) {
+			throw new IllegalArgumentException("Invalid suggested test cycle key: " + cycleKey);
+		}
+		return file;
+	}
 }

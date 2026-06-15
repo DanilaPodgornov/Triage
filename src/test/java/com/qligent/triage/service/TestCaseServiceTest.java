@@ -46,10 +46,12 @@ class TestCaseServiceTest {
 		when(zephyrScaleClient.getStatuses("SQM", 0, 100)).thenReturn(emptyStatusesPage());
 		when(zephyrScaleClient.getTestCases(eq("SQM"), eq(0), eq(1000), eq(Optional.empty()))).thenReturn(testCasesPage());
 
-		var query = new TestCaseListQuery(Optional.of(2L), Optional.empty(), Optional.empty(), TestCaseSort.KEY, SortDirection.ASC, 0);
+		var query = new TestCaseListQuery(Optional.of(2L), Optional.empty(), Optional.empty(), TestCaseSort.KEY, SortDirection.ASC, 0, 10);
 		var result = testCaseService.getTestCasesPage(Project.B2C, query);
 
 		assertThat(result.totalItems()).isEqualTo(2);
+		assertThat(result.rangeFrom()).isEqualTo(1);
+		assertThat(result.rangeTo()).isEqualTo(2);
 		assertThat(result.allMatchingTestCaseKeys()).containsExactlyInAnyOrder("SQM-T1", "SQM-T3");
 		assertThat(result.testCases()).extracting("key").containsExactly("SQM-T1", "SQM-T3");
 		verify(zephyrScaleClient).getTestCases("SQM", 0, 1000, Optional.empty());
@@ -84,7 +86,8 @@ class TestCaseServiceTest {
 				Optional.empty(),
 				TestCaseSort.STATUS,
 				SortDirection.ASC,
-				0);
+				0,
+				10);
 		var result = testCaseService.getTestCasesPage(Project.B2C, query);
 
 		assertThat(result.totalItems()).isEqualTo(2);

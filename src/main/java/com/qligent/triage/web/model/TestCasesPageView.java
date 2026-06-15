@@ -20,6 +20,8 @@ public record TestCasesPageView(
 		List<String> allMatchingTestCaseKeys,
 		int currentPage,
 		int pageSize,
+		int rangeFrom,
+		int rangeTo,
 		int totalItems,
 		int totalPages,
 		boolean lastPage

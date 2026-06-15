@@ -21,9 +21,12 @@ import tools.jackson.databind.ObjectMapper;
 import com.qligent.triage.config.TriageProperties;
 import com.qligent.triage.llm.AiSortValidator;
 import com.qligent.triage.llm.LlmClient;
+import com.qligent.triage.llm.LlmPromptTemplateType;
+import com.qligent.triage.llm.LlmRuntimeSettings;
 import com.qligent.triage.llm.WeightValidator;
 import com.qligent.triage.llm.dto.AiSortResponse;
 import com.qligent.triage.model.Project;
+import com.qligent.triage.suggested.SuggestedTestCycle;
 import com.qligent.triage.suggested.SuggestedTestCycleStorage;
 import com.qligent.triage.zephyr.ZephyrScaleClient;
 import com.qligent.triage.zephyr.dto.PriorityDto;
@@ -55,6 +58,9 @@ class PrioritizationServiceTest {
 	@Mock
 	private ZephyrScaleClient zephyrScaleClient;
 
+	@Mock
+	private LlmRuntimeSettings llmRuntimeSettings;
+
 	private PrioritizationService prioritizationService;
 	private SuggestedTestCycleStorage storage;
 
@@ -64,6 +70,7 @@ class PrioritizationServiceTest {
 				new TriageProperties(
 						tempDir.resolve("llm").toString(),
 						tempDir.resolve("suggested_test_cycles").toString(),
+						15,
 						null,
 						null),
 				new ObjectMapper());
@@ -75,7 +82,8 @@ class PrioritizationServiceTest {
 				aiSortValidator,
 				storage,
 				zephyrScaleClient,
-				new ObjectMapper());
+				new ObjectMapper(),
+				llmRuntimeSettings);
 	}
 
 	@Test
@@ -105,11 +113,18 @@ class PrioritizationServiceTest {
 		when(aiSortValidator.validateAndNormalize(eq(List.of("SQM-T1", "SQM-T2")), any())).thenReturn(Map.of(
 				"SQM-T1", 0.6,
 				"SQM-T2", 0.4));
+		when(llmRuntimeSettings.resolveModel()).thenReturn("qwen2.5:3b");
+		when(llmRuntimeSettings.numCtx()).thenReturn(8192);
+		when(llmRuntimeSettings.activeVersion(LlmPromptTemplateType.AI_SORT)).thenReturn("0.1.0");
+		when(llmRuntimeSettings.activeVersion(LlmPromptTemplateType.WEIGHTS)).thenReturn("0.1.0");
 
 		var cycle = prioritizationService.prioritize(Project.B2C, List.of("SQM-T1", "SQM-T2"));
 
 		assertThat(cycle.suggestedTestCycleKey()).isEqualTo("SQM-SR1");
 		assertThat(cycle.suggestedTestCycleName()).isEqualTo("Weighted Sprint");
+		assertThat(cycle.llm()).isEqualTo("qwen2.5-3b_ctx8192");
+		assertThat(cycle.aisortPromptVersion()).isEqualTo("0.1.0");
+		assertThat(cycle.weightsPromptVersion()).isEqualTo("0.1.0");
 		assertThat(cycle.tests()).hasSize(2);
 		assertThat(cycle.tests().getFirst().aiSort()).isEqualTo(0.6);
 		assertThat(storage.findByKey("SQM-SR1")).isPresent();

@@ -19,7 +19,9 @@ llm:
   base-url: http://localhost:11434
   model: qwen2.5:3b
   num-ctx: 8192
-  default-prompt-location: classpath:llm/default-prioritization-prompt.txt
+  prompt-templates-dir: ./llm/prompt_templates
+  settings-file: ./llm/llm-settings.json
+  default-prompt-location: classpath:default_llm_prompt.md
 
 jira:
   api-url: ${JIRA_API_URL:}
@@ -35,8 +37,9 @@ logging:
     com.qligent.triage.llm.LlmClient: INFO
 
 triage:
-  llm-artifacts-dir: ./llm
+  llm-artifacts-dir: ./llm/io
   suggested-cycles-dir: ./suggested_test_cycles
+  testcases-page-size: 15
   theme:
     default-theme: system
   locale:

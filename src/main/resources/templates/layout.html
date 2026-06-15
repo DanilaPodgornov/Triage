@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="color-scheme" content="light dark">
     <title th:text="${pageTitle != null ? pageTitle + ' — Triage' : 'Triage'}">Triage</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <script th:src="@{/js/theme-init.js}"></script>
     <script th:src="@{/js/locale-init.js}"></script>
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -17,7 +18,10 @@
 <body>
 <header class="app-header">
     <div class="container">
-        <h1>Triage</h1>
+        <h1 class="app-brand">
+            <img class="app-brand__icon" th:src="@{/icons/triage-mark.svg}" width="28" height="28" alt="">
+            <span class="app-brand__name">Triage</span>
+        </h1>
     </div>
 </header>
 

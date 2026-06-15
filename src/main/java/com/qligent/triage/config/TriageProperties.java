@@ -6,16 +6,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record TriageProperties(
 		String llmArtifactsDir,
 		String suggestedCyclesDir,
+		int testcasesPageSize,
 		Theme theme,
 		Locale locale
 ) {
 
 	public TriageProperties {
 		if (llmArtifactsDir == null || llmArtifactsDir.isBlank()) {
-			llmArtifactsDir = "./llm";
+			llmArtifactsDir = "./llm/io";
 		}
 		if (suggestedCyclesDir == null || suggestedCyclesDir.isBlank()) {
 			suggestedCyclesDir = "./suggested_test_cycles";
+		}
+		if (testcasesPageSize <= 0) {
+			testcasesPageSize = 15;
 		}
 		if (theme == null) {
 			theme = new Theme("system");

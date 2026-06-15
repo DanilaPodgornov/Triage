@@ -2,169 +2,304 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: layout(~{::main-content}, null, true, ~{})}">
 <th:block th:fragment="main-content">
-    <div class="testcases-page" id="testcases-app" th:attr="data-project=${project}">
-        <header class="testcases-page__header">
-            <div class="actions">
-                <button type="button" id="select-all-btn" class="btn btn-secondary"
-                        th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}"
-                        data-i18n="testcases.selectAll">Select All</button>
-                <button type="button" id="prioritize-btn" class="btn btn-primary" disabled
-                        data-i18n="testcases.prioritize">Prioritize</button>
-                <span id="selection-count" class="selection-count"></span>
-            </div>
-        </header>
-
+    <div class="testcases-page" id="testcases-app" th:attr="data-project=${project}, data-base-page-size=${basePageSize}">
         <main class="testcases-page__main">
-            <div class="testcases-page__list">
-                <div class="testcases-table-scroll" id="testcases-table-scroll">
-                    <table class="data-table" id="testcases-table">
-                        <thead>
-                        <tr>
-                            <th class="col-checkbox" data-column="select"></th>
-                            <th class="col-key" data-column="key" data-i18n="testcases.col.key">Key</th>
-                            <th class="col-priority" data-column="priority" data-i18n="testcases.col.priority">Priority</th>
-                            <th class="col-status" data-column="status" data-i18n="testcases.col.status">Status</th>
-                            <th class="col-folder" data-column="folder" data-i18n="testcases.col.folder">Folder</th>
-                            <th class="col-name" data-column="name" data-i18n="testcases.col.name">Name</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:if="${#lists.isEmpty(pageView.testCases)}">
-                            <td colspan="6" class="empty-row" data-i18n="testcases.empty">No test cases found.</td>
-                        </tr>
-                        <tr th:each="testCase : ${pageView.testCases}">
-                            <td class="col-checkbox" data-column="select">
-                                <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}"
-                                       th:value="${testCase.key}">
-                                <label class="sr-only" th:for="'tc-' + ${testCase.key}"
-                                       th:text="'Select test case ' + ${testCase.key}">Select test case</label>
-                            </td>
-                            <td class="col-key" data-column="key" th:text="${testCase.key}"></td>
-                            <td class="col-priority" data-column="priority">
-                                <span th:if="${testCase.priorityColor != null}"
-                                      class="priority-badge"
-                                      th:style="|background-color: ${testCase.priorityColor}; color: ${testCase.priorityTextColor};|"
-                                      th:text="${testCase.priority}">—</span>
-                                <span th:if="${testCase.priorityColor == null}" th:text="${testCase.priority}">—</span>
-                            </td>
-                            <td class="col-status" data-column="status" th:text="${testCase.status}"></td>
-                            <td class="col-folder" data-column="folder" th:text="${testCase.folder}"></td>
-                            <td class="col-name" data-column="name" th:text="${testCase.name}"></td>
-                        </tr>
-                        </tbody>
-                    </table>
+            <section class="testcases-tile testcases-tile--tests">
+                <header class="testcases-page__header">
+                    <div class="actions testcases-page__toolbar">
+                        <button type="button" id="select-all-btn" class="btn btn-secondary"
+                                th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}"
+                                data-i18n="testcases.selectAll">Select All</button>
+                        <button type="button" id="prioritize-btn" class="btn btn-primary" disabled
+                                data-i18n="testcases.prioritize">Prioritize</button>
+                        <span id="selection-count" class="selection-count"></span>
+                    </div>
+                </header>
+
+                <div class="testcases-tile__body">
+                    <div class="testcases-page__list">
+                        <div class="testcases-table-scroll" id="testcases-table-scroll"
+                             th:classappend="${pageView.pageSize > basePageSize} ? ' is-scrollable-y' : ''"
+                             th:style="${pageView.pageSize > basePageSize} ? |--testcases-viewport-rows: ${basePageSize}| : null">
+                            <table class="data-table" id="testcases-table">
+                                <thead>
+                                <tr>
+                                    <th class="col-checkbox" data-column="select"></th>
+                                    <th class="col-key" data-column="key" data-i18n="testcases.col.key">Key</th>
+                                    <th class="col-priority" data-column="priority" data-i18n="testcases.col.priority">Priority</th>
+                                    <th class="col-status" data-column="status" data-i18n="testcases.col.status">Status</th>
+                                    <th class="col-folder" data-column="folder" data-i18n="testcases.col.folder">Folder</th>
+                                    <th class="col-name" data-column="name" data-i18n="testcases.col.name">Name</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:if="${#lists.isEmpty(pageView.testCases)}">
+                                    <td colspan="6" class="empty-row" data-i18n="testcases.empty">No test cases found.</td>
+                                </tr>
+                                <tr th:each="testCase : ${pageView.testCases}">
+                                    <td class="col-checkbox" data-column="select">
+                                        <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}"
+                                               th:value="${testCase.key}">
+                                        <label class="sr-only" th:for="'tc-' + ${testCase.key}"
+                                               th:text="'Select test case ' + ${testCase.key}">Select test case</label>
+                                    </td>
+                                    <td class="col-key" data-column="key" th:text="${testCase.key}"
+                                        th:attr="title=${testCase.key}"></td>
+                                    <td class="col-priority" data-column="priority" th:attr="title=${testCase.priority}">
+                                        <span th:if="${testCase.priorityColor != null}"
+                                              class="priority-badge"
+                                              th:style="|background-color: ${testCase.priorityColor}; color: ${testCase.priorityTextColor};|"
+                                              th:text="${testCase.priority}">—</span>
+                                        <span th:if="${testCase.priorityColor == null}" th:text="${testCase.priority}">—</span>
+                                    </td>
+                                    <td class="col-status" data-column="status" th:text="${testCase.status}"
+                                        th:attr="title=${testCase.status}"></td>
+                                    <td class="col-folder" data-column="folder" th:text="${testCase.folder}"
+                                        th:attr="title=${testCase.folder}"></td>
+                                    <td class="col-name" data-column="name" th:text="${testCase.name}"
+                                        th:attr="title=${testCase.name}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <nav class="pagination" th:if="${pageView.totalItems > 0}" aria-label="Test cases pagination">
+                            <div class="pagination__nav">
+                                <a th:if="${pageView.currentPage > 0}"
+                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage - 1})}"
+                                   class="pagination-link" data-i18n="testcases.pagination.previous">Previous</a>
+
+                                <span class="pagination-info"
+                                      data-i18n="testcases.pagination.info"
+                                      th:attr="data-i18n-current=${pageView.currentPage + 1},
+                                               data-i18n-total=${pageView.totalPages},
+                                               data-i18n-from=${pageView.rangeFrom},
+                                               data-i18n-to=${pageView.rangeTo},
+                                               data-i18n-items=${pageView.totalItems}">
+                                </span>
+
+                                <a th:if="${!pageView.lastPage}"
+                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage + 1})}"
+                                   class="pagination-link" data-i18n="testcases.pagination.next">Next</a>
+                            </div>
+
+                            <label class="rows-per-page" for="rows-per-page">
+                                <span data-i18n="testcases.rowsPerPage">Rows per page</span>
+                                <select id="rows-per-page" name="size">
+                                    <option th:value="${basePageSize}" th:selected="${pageView.pageSize == basePageSize}"
+                                            th:text="${basePageSize}">15</option>
+                                    <option th:value="${basePageSize * 2}" th:selected="${pageView.pageSize == basePageSize * 2}"
+                                            th:text="${basePageSize * 2}">30</option>
+                                    <option th:value="${basePageSize * 4}" th:selected="${pageView.pageSize == basePageSize * 4}"
+                                            th:text="${basePageSize * 4}">60</option>
+                                </select>
+                            </label>
+                        </nav>
+                    </div>
+
+                    <aside class="testcases-page__sidebar">
+                        <section class="testcases-page__columns" aria-labelledby="testcases-columns-heading">
+                            <h2 id="testcases-columns-heading" class="testcases-panel__title" data-i18n="testcases.columns">Columns</h2>
+                            <div class="column-toggles" id="column-toggles">
+                                <label class="column-toggle">
+                                    <input type="checkbox" data-column-toggle="key" checked>
+                                    <span data-i18n="testcases.col.key">Key</span>
+                                </label>
+                                <label class="column-toggle">
+                                    <input type="checkbox" data-column-toggle="priority" checked>
+                                    <span data-i18n="testcases.col.priority">Priority</span>
+                                </label>
+                                <label class="column-toggle">
+                                    <input type="checkbox" data-column-toggle="status" checked>
+                                    <span data-i18n="testcases.col.status">Status</span>
+                                </label>
+                                <label class="column-toggle">
+                                    <input type="checkbox" data-column-toggle="folder" checked>
+                                    <span data-i18n="testcases.col.folder">Folder</span>
+                                </label>
+                                <label class="column-toggle">
+                                    <input type="checkbox" data-column-toggle="name" checked>
+                                    <span data-i18n="testcases.col.name">Name</span>
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="testcases-page__filters" aria-labelledby="testcases-filters-heading">
+                            <h2 id="testcases-filters-heading" class="testcases-panel__title" data-i18n="testcases.filters">Filters</h2>
+                            <form class="local-filters local-filters--stacked" method="get" th:action="@{/testcases}">
+                                <input type="hidden" name="project" th:value="${project}">
+                                <input type="hidden" name="page" value="0">
+                                <input type="hidden" name="size" th:value="${pageView.pageSize}">
+
+                                <label for="priority-filter" data-i18n="testcases.filter.priority">Priority</label>
+                                <select id="priority-filter" name="priority" onchange="this.form.submit()">
+                                    <option value="" data-i18n="testcases.filter.allPriorities">All priorities</option>
+                                    <option th:each="option : ${pageView.priorities}"
+                                            th:value="${option.id}"
+                                            th:text="${option.name}"
+                                            th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
+                                    </option>
+                                </select>
+
+                                <label for="folder-filter" data-i18n="testcases.filter.folder">Folder</label>
+                                <select id="folder-filter" name="folder" onchange="this.form.submit()">
+                                    <option value="" data-i18n="testcases.filter.allFolders">All folders</option>
+                                    <option th:each="option : ${pageView.folders}"
+                                            th:value="${option.id}"
+                                            th:text="${option.name}"
+                                            th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
+                                    </option>
+                                </select>
+
+                                <label for="status-filter" data-i18n="testcases.filter.status">Status</label>
+                                <select id="status-filter" name="status" onchange="this.form.submit()">
+                                    <option value="" data-i18n="testcases.filter.allStatuses">All statuses</option>
+                                    <option th:each="option : ${pageView.statuses}"
+                                            th:value="${option.id}"
+                                            th:text="${option.name}"
+                                            th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
+                                    </option>
+                                </select>
+
+                                <label for="sort-filter" data-i18n="testcases.filter.sortBy">Sort by</label>
+                                <select id="sort-filter" name="sort" onchange="this.form.submit()">
+                                    <option value="key" th:selected="${pageView.sort.name() == 'KEY'}" data-i18n="testcases.sort.key">Key</option>
+                                    <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}" data-i18n="testcases.sort.priority">Priority</option>
+                                    <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}" data-i18n="testcases.sort.folder">Folder</option>
+                                    <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}" data-i18n="testcases.sort.status">Status</option>
+                                </select>
+
+                                <label for="dir-filter" data-i18n="testcases.filter.order">Order</label>
+                                <select id="dir-filter" name="dir" onchange="this.form.submit()">
+                                    <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}" data-i18n="testcases.sort.asc">Ascending</option>
+                                    <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}" data-i18n="testcases.sort.desc">Descending</option>
+                                </select>
+                            </form>
+                        </section>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="testcases-tile testcases-tile--llm llm-panel" aria-labelledby="llm-panel-heading">
+                <h2 id="llm-panel-heading" class="testcases-panel__title" data-i18n="testcases.llm">Local LLM</h2>
+
+                <div class="llm-panel__settings">
+                    <label class="llm-panel__field" for="llm-model-select">
+                        <span data-i18n="testcases.chooseLlm">LLM model</span>
+                        <select id="llm-model-select">
+                            <option value="" data-i18n="testcases.chooseLlmPlaceholder">Choose LLM</option>
+                        </select>
+                    </label>
+
+                    <div class="llm-panel__pull">
+                        <label class="llm-panel__field" for="llm-pull-input">
+                            <span data-i18n="testcases.pullModel">Pull model</span>
+                            <input type="text" id="llm-pull-input" placeholder="qwen2.5:3b" spellcheck="false">
+                        </label>
+                        <button type="button" id="llm-pull-btn" class="btn btn-secondary" data-i18n="testcases.pullModel">Pull model</button>
+                    </div>
+
+                    <a class="llm-panel__browse" href="https://ollama.com/search" target="_blank" rel="noopener noreferrer"
+                       data-i18n="testcases.browseOllama">Browse on Ollama</a>
+
+                    <label class="llm-panel__field" for="llm-num-ctx">
+                        <span data-i18n="testcases.numCtx">Context size</span>
+                        <input type="number" id="llm-num-ctx" min="512" step="512" value="8192">
+                    </label>
                 </div>
 
-                <nav class="pagination" th:if="${pageView.totalItems > 0}" aria-label="Test cases pagination">
-                    <a th:if="${pageView.currentPage > 0}"
-                       th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage - 1})}"
-                       class="pagination-link" data-i18n="testcases.pagination.previous">Previous</a>
+                <details class="llm-prompt-guide">
+                    <summary class="llm-prompt-guide__summary" data-i18n="testcases.promptGuide.title">Prompt writing guide</summary>
+                    <div class="llm-prompt-guide__body">
+                        <p data-i18n="testcases.promptGuide.intro">Prompts are model-specific. Keep mandatory placeholders and JSON response schemas unchanged.</p>
 
-                    <span class="pagination-info"
-                          data-i18n="testcases.pagination.info"
-                          th:attr="data-i18n-current=${pageView.currentPage + 1}, data-i18n-total=${pageView.totalPages}, data-i18n-items=${pageView.totalItems}">
-                    </span>
+                        <h4 data-i18n="testcases.promptGuide.weightsTitle">Weights prompt</h4>
+                        <ul>
+                            <li data-i18n="testcases.promptGuide.weightsPlaceholder">Keep the <code>{testCaseData}</code> placeholder — the app injects test metadata there.</li>
+                            <li data-i18n="testcases.promptGuide.weightsKeys">Response JSON must contain exactly eight keys: priority, status, labels, executionsCount, failuresCount, failedExecutionsRatio, lastExecutionStatus, executionTime.</li>
+                            <li data-i18n="testcases.promptGuide.weightsRules">Each value is 0–1 and all eight must sum to exactly 1. Reply with JSON only.</li>
+                        </ul>
+                        <pre class="llm-prompt-guide__example" aria-label="Weights example">Respond with JSON only, matching this schema exactly:
+{
+  "priority": 0.0,
+  "status": 0.0,
+  "labels": 0.0,
+  "executionsCount": 0.0,
+  "failuresCount": 0.0,
+  "failedExecutionsRatio": 0.0,
+  "lastExecutionStatus": 0.0,
+  "executionTime": 0.0
+}</pre>
 
-                    <a th:if="${!pageView.lastPage}"
-                       th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, page=${pageView.currentPage + 1})}"
-                       class="pagination-link" data-i18n="testcases.pagination.next">Next</a>
-                </nav>
-            </div>
-
-            <aside class="testcases-page__sidebar">
-                <section class="testcases-page__columns" aria-labelledby="testcases-columns-heading">
-                    <h2 id="testcases-columns-heading" class="testcases-panel__title" data-i18n="testcases.columns">Columns</h2>
-                    <div class="column-toggles" id="column-toggles">
-                        <label class="column-toggle">
-                            <input type="checkbox" data-column-toggle="key" checked>
-                            <span data-i18n="testcases.col.key">Key</span>
-                        </label>
-                        <label class="column-toggle">
-                            <input type="checkbox" data-column-toggle="priority" checked>
-                            <span data-i18n="testcases.col.priority">Priority</span>
-                        </label>
-                        <label class="column-toggle">
-                            <input type="checkbox" data-column-toggle="status" checked>
-                            <span data-i18n="testcases.col.status">Status</span>
-                        </label>
-                        <label class="column-toggle">
-                            <input type="checkbox" data-column-toggle="folder" checked>
-                            <span data-i18n="testcases.col.folder">Folder</span>
-                        </label>
-                        <label class="column-toggle">
-                            <input type="checkbox" data-column-toggle="name" checked>
-                            <span data-i18n="testcases.col.name">Name</span>
-                        </label>
+                        <h4 data-i18n="testcases.promptGuide.aisortTitle">AI sort prompt</h4>
+                        <ul>
+                            <li data-i18n="testcases.promptGuide.aisortPlaceholder">Keep the <code>{testCasesJson}</code> placeholder — the app injects the ranked test list there.</li>
+                            <li data-i18n="testcases.promptGuide.aisortSchema">Response JSON must include <code>suggestedTestCycleName</code> and a <code>tests</code> array with every input key exactly once.</li>
+                            <li data-i18n="testcases.promptGuide.aisortRules">Each <code>aiSort</code> is 0–1; all values must sum to exactly 1. Tests with failed executions must rank higher.</li>
+                        </ul>
+                        <pre class="llm-prompt-guide__example" aria-label="AI sort example">Respond with JSON only, matching this schema exactly:
+{
+  "suggestedTestCycleName": "short descriptive cycle name",
+  "tests": [
+    { "key": "KEY1", "aiSort": 0.0 }
+  ]
+}</pre>
                     </div>
-                </section>
+                </details>
 
-                <section class="testcases-page__filters" aria-labelledby="testcases-filters-heading">
-                    <h2 id="testcases-filters-heading" class="testcases-panel__title" data-i18n="testcases.filters">Filters</h2>
-                    <form class="local-filters local-filters--stacked" method="get" th:action="@{/testcases}">
-                        <input type="hidden" name="project" th:value="${project}">
-                        <input type="hidden" name="page" value="0">
+                <div class="llm-panel__editors">
+                    <article class="prompt-editor" data-prompt-type="weights">
+                        <header class="prompt-editor__header">
+                            <h3 class="prompt-editor__title" data-i18n="testcases.weightsPrompt">Weights prompt</h3>
+                            <div class="prompt-editor__actions">
+                                <label class="sr-only" for="weights-version-select" data-i18n="testcases.promptVersion">Version</label>
+                                <select id="weights-version-select" class="prompt-version-select"></select>
+                                <button type="button" class="btn btn-icon prompt-download-btn" data-prompt-type="weights"
+                                        title="Download" aria-label="Download" data-i18n-title="testcases.download">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                        <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.42l2.3 2.3V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </header>
+                        <textarea id="weights-prompt" class="llm-query-field prompt-editor__textarea" rows="14" spellcheck="false"></textarea>
+                        <button type="button" id="weights-save-btn" class="btn btn-primary prompt-save-btn" disabled
+                                data-i18n="testcases.save">Save</button>
+                    </article>
 
-                        <label for="priority-filter" data-i18n="testcases.filter.priority">Priority</label>
-                        <select id="priority-filter" name="priority" onchange="this.form.submit()">
-                            <option value="" data-i18n="testcases.filter.allPriorities">All priorities</option>
-                            <option th:each="option : ${pageView.priorities}"
-                                    th:value="${option.id}"
-                                    th:text="${option.name}"
-                                    th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
-                            </option>
-                        </select>
-
-                        <label for="folder-filter" data-i18n="testcases.filter.folder">Folder</label>
-                        <select id="folder-filter" name="folder" onchange="this.form.submit()">
-                            <option value="" data-i18n="testcases.filter.allFolders">All folders</option>
-                            <option th:each="option : ${pageView.folders}"
-                                    th:value="${option.id}"
-                                    th:text="${option.name}"
-                                    th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
-                            </option>
-                        </select>
-
-                        <label for="status-filter" data-i18n="testcases.filter.status">Status</label>
-                        <select id="status-filter" name="status" onchange="this.form.submit()">
-                            <option value="" data-i18n="testcases.filter.allStatuses">All statuses</option>
-                            <option th:each="option : ${pageView.statuses}"
-                                    th:value="${option.id}"
-                                    th:text="${option.name}"
-                                    th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
-                            </option>
-                        </select>
-
-                        <label for="sort-filter" data-i18n="testcases.filter.sortBy">Sort by</label>
-                        <select id="sort-filter" name="sort" onchange="this.form.submit()">
-                            <option value="key" th:selected="${pageView.sort.name() == 'KEY'}" data-i18n="testcases.sort.key">Key</option>
-                            <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}" data-i18n="testcases.sort.priority">Priority</option>
-                            <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}" data-i18n="testcases.sort.folder">Folder</option>
-                            <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}" data-i18n="testcases.sort.status">Status</option>
-                        </select>
-
-                        <label for="dir-filter" data-i18n="testcases.filter.order">Order</label>
-                        <select id="dir-filter" name="dir" onchange="this.form.submit()">
-                            <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}" data-i18n="testcases.sort.asc">Ascending</option>
-                            <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}" data-i18n="testcases.sort.desc">Descending</option>
-                        </select>
-                    </form>
-                </section>
-
-                <section class="testcases-page__llm" aria-labelledby="testcases-llm-heading">
-                    <h2 id="testcases-llm-heading" class="testcases-panel__title" data-i18n="testcases.llm">Local LLM</h2>
-                    <label for="llm-prompt" data-i18n="testcases.llmPrompt">Prompt</label>
-                    <textarea id="llm-prompt" class="llm-query-field" rows="12" spellcheck="false"
-                              th:text="${defaultLlmPrompt}"></textarea>
-                    <div class="llm-prompt-actions">
-                        <button type="button" id="llm-prompt-reset-btn" class="btn btn-secondary"
-                                data-i18n="testcases.llmReset">Reset default prompt</button>
-                        <button type="button" id="llm-prompt-download-btn" class="btn btn-secondary"
-                                data-i18n="testcases.llmDownload">Download prompt</button>
-                    </div>
-                    <p class="field-hint" data-i18n="testcases.llmHint">Edits are stored in this browser only. Prioritize still uses the server default prompt.</p>
-                </section>
-            </aside>
+                    <article class="prompt-editor" data-prompt-type="aisort">
+                        <header class="prompt-editor__header">
+                            <h3 class="prompt-editor__title" data-i18n="testcases.aisortPrompt">AI sort prompt</h3>
+                            <div class="prompt-editor__actions">
+                                <label class="sr-only" for="aisort-version-select" data-i18n="testcases.promptVersion">Version</label>
+                                <select id="aisort-version-select" class="prompt-version-select"></select>
+                                <button type="button" class="btn btn-icon prompt-download-btn" data-prompt-type="aisort"
+                                        title="Download" aria-label="Download" data-i18n-title="testcases.download">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                        <path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.42l2.3 2.3V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1 1v2h12v-2a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </header>
+                        <textarea id="aisort-prompt" class="llm-query-field prompt-editor__textarea" rows="14" spellcheck="false"></textarea>
+                        <button type="button" id="aisort-save-btn" class="btn btn-primary prompt-save-btn" disabled
+                                data-i18n="testcases.save">Save</button>
+                    </article>
+                </div>
+            </section>
         </main>
+    </div>
+
+    <div id="llm-pull-modal" class="progress-modal" hidden aria-live="polite" aria-busy="true">
+        <div class="progress-modal__panel confirm-modal__panel">
+            <div id="llm-pull-spinner" class="progress-modal__spinner" aria-hidden="true"></div>
+            <h2 id="llm-pull-title" class="progress-modal__title" data-i18n="testcases.pullModal.title">Downloading LLM model</h2>
+            <p id="llm-pull-text" class="progress-modal__text"></p>
+            <pre id="llm-pull-error" class="progress-modal__error" hidden></pre>
+            <div class="confirm-modal__actions">
+                <button type="button" id="llm-pull-close-btn" class="btn btn-primary" hidden data-i18n="testcases.ok">OK</button>
+            </div>
+        </div>
     </div>
 
     <div id="prioritize-progress-modal" class="progress-modal" hidden aria-live="polite" aria-busy="true">
@@ -173,12 +308,30 @@
             <h2 class="progress-modal__title" data-i18n="testcases.progress.title">Prioritizing test cases</h2>
             <p id="prioritize-progress-text" class="progress-modal__text"></p>
             <p id="prioritize-progress-timer" class="progress-modal__timer"></p>
+            <div class="confirm-modal__actions">
+                <button type="button" id="prioritize-cancel-btn" class="btn btn-secondary"
+                        data-i18n="testcases.progress.cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="prompt-save-modal" class="progress-modal confirm-modal" hidden aria-live="polite">
+        <div class="progress-modal__panel confirm-modal__panel">
+            <h2 class="progress-modal__title" data-i18n="testcases.saveWarning.title">Save prompt version?</h2>
+            <p class="progress-modal__text" data-i18n="testcases.saveWarning.text">
+                Changing the prompt may affect prioritization results. Save only if you are confident in your changes.
+            </p>
+            <div class="confirm-modal__actions">
+                <button type="button" id="prompt-save-cancel-btn" class="btn btn-secondary"
+                        data-i18n="testcases.cancel">Cancel</button>
+                <button type="button" id="prompt-save-confirm-btn" class="btn btn-primary"
+                        data-i18n="testcases.ok">OK</button>
+            </div>
         </div>
     </div>
 
     <script th:inline="javascript">
         window.__allMatchingTestCaseKeys = /*[[${pageView.allMatchingTestCaseKeys}]]*/ [];
-        window.__defaultLlmPrompt = /*[[${defaultLlmPrompt}]]*/ '';
     </script>
 </th:block>
 </html>

@@ -19,7 +19,7 @@ class PrioritizationJobStatusResponseSerializationTest {
 	@Test
 	void shouldSerializeRedirectUrlFieldName() throws Exception {
 		var response = new PrioritizationJobStatusResponse(
-				"COMPLETED", 2, 2, 1000L, "SQM-SR2", "/suggestedcycles/SQM-SR2?project=B2C", null);
+				"COMPLETED", 2, 2, 0, null, 1000L, "SQM-SR2", "/suggestedcycles/SQM-SR2?project=B2C", null);
 
 		JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(response));
 

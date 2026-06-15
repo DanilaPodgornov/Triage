@@ -1,6 +1,7 @@
 package com.qligent.triage.web;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,17 +33,34 @@ public class PrioritizationApiController {
 		return ResponseEntity.accepted().body(new PrioritizeJobResponse(job.id(), job.totalTests()));
 	}
 
+	@DeleteMapping("/jobs/{jobId}")
+	public ResponseEntity<?> cancelPrioritization(@PathVariable String jobId) {
+		try {
+			PrioritizationJob job = prioritizationJobService.cancel(jobId);
+			return ResponseEntity.ok(toStatusResponse(job));
+		} catch (IllegalStateException exception) {
+			return ResponseEntity.status(org.springframework.http.HttpStatus.CONFLICT)
+					.body(new com.qligent.triage.web.api.ApiErrorResponse(exception.getMessage()));
+		}
+	}
+
 	@GetMapping("/jobs/{jobId}")
 	public ResponseEntity<PrioritizationJobStatusResponse> getJobStatus(@PathVariable String jobId) {
 		PrioritizationJob job = prioritizationJobService.getJob(jobId);
+		return ResponseEntity.ok(toStatusResponse(job));
+	}
+
+	private static PrioritizationJobStatusResponse toStatusResponse(PrioritizationJob job) {
 		var snapshot = job.snapshot();
-		return ResponseEntity.ok(new PrioritizationJobStatusResponse(
+		return new PrioritizationJobStatusResponse(
 				snapshot.status().name(),
 				snapshot.completedTests(),
 				snapshot.totalTests(),
+				snapshot.currentTest(),
+				snapshot.currentTestCaseKey(),
 				snapshot.elapsedMillis(),
 				snapshot.cycleKey(),
 				snapshot.redirectUrl(),
-				snapshot.errorMessage()));
+				snapshot.errorMessage());
 	}
 }

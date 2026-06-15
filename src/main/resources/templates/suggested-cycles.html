@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout :: layout(~{::main-content}, 'Suggested Test Cycles', false, ~{})}">
+      th:replace="~{layout :: layout(~{::main-content}, 'Suggested Test Cycles', false, ~{::page-scripts})}">
+<th:block th:fragment="page-scripts">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function updateSuggestedCyclesTitle() {
+                if (!window.TriageI18n) {
+                    return;
+                }
+                document.title = window.TriageI18n.translate('suggested.page.title') + ' — Triage';
+            }
+            updateSuggestedCyclesTitle();
+            document.addEventListener('triage:locale-changed', updateSuggestedCyclesTitle);
+
+            const rowsPerPageSelect = document.getElementById('rows-per-page');
+            if (rowsPerPageSelect) {
+                rowsPerPageSelect.addEventListener('change', () => {
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('size', rowsPerPageSelect.value);
+                    params.set('page', '0');
+                    window.location.search = params.toString();
+                });
+            }
+        });
+    </script>
+</th:block>
 <th:block th:fragment="main-content">
     <section class="tab-content" id="suggested-cycles-app" th:attr="data-project=${project}">
         <table class="data-table">
@@ -12,10 +36,10 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:if="${#lists.isEmpty(cycles)}">
+            <tr th:if="${#lists.isEmpty(pageView.cycles)}">
                 <td colspan="3" class="empty-row" data-i18n="suggested.empty">No suggested test cycles yet.</td>
             </tr>
-            <tr th:each="cycle : ${cycles}">
+            <tr th:each="cycle : ${pageView.cycles}">
                 <td class="col-key">
                     <a th:href="@{/suggestedcycles/{key}(key=${cycle.suggestedTestCycleKey}, project=${project})}"
                        th:text="${cycle.suggestedTestCycleKey}"></a>
@@ -25,6 +49,39 @@
             </tr>
             </tbody>
         </table>
+
+        <nav class="pagination" th:if="${pageView.totalItems > 0}" aria-label="Suggested test cycles pagination">
+            <div class="pagination__nav">
+                <a th:if="${pageView.currentPage > 0}"
+                   th:href="@{/suggestedcycles(project=${project}, size=${pageView.pageSize}, page=${pageView.currentPage - 1})}"
+                   class="pagination-link" data-i18n="testcases.pagination.previous">Previous</a>
+
+                <span class="pagination-info"
+                      data-i18n="testcases.pagination.info"
+                      th:attr="data-i18n-current=${pageView.currentPage + 1},
+                               data-i18n-total=${pageView.totalPages},
+                               data-i18n-from=${pageView.rangeFrom},
+                               data-i18n-to=${pageView.rangeTo},
+                               data-i18n-items=${pageView.totalItems}">
+                </span>
+
+                <a th:if="${!pageView.lastPage}"
+                   th:href="@{/suggestedcycles(project=${project}, size=${pageView.pageSize}, page=${pageView.currentPage + 1})}"
+                   class="pagination-link" data-i18n="testcases.pagination.next">Next</a>
+            </div>
+
+            <label class="rows-per-page" for="rows-per-page">
+                <span data-i18n="testcases.rowsPerPage">Rows per page</span>
+                <select id="rows-per-page" name="size">
+                    <option th:value="${basePageSize}" th:selected="${pageView.pageSize == basePageSize}"
+                            th:text="${basePageSize}">15</option>
+                    <option th:value="${basePageSize * 2}" th:selected="${pageView.pageSize == basePageSize * 2}"
+                            th:text="${basePageSize * 2}">30</option>
+                    <option th:value="${basePageSize * 4}" th:selected="${pageView.pageSize == basePageSize * 4}"
+                            th:text="${basePageSize * 4}">60</option>
+                </select>
+            </label>
+        </nav>
     </section>
 </th:block>
 </html>

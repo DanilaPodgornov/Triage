@@ -45,7 +45,7 @@ public class TestCaseService {
 		Map<Long, String> folderNames = toNameMap(folders);
 		Map<Long, String> statusNames = toNameMap(statuses);
 
-		int pageSize = properties.pageSize();
+		int pageSize = query.pageSize();
 		List<TestCaseDto> allMatching;
 		List<TestCaseDto> sourceCases;
 		int totalItems;
@@ -78,6 +78,8 @@ public class TestCaseService {
 				.toList();
 
 		int totalPages = computeTotalPages(totalItems, pageSize);
+		int rangeFrom = totalItems == 0 ? 0 : query.page() * pageSize + 1;
+		int rangeTo = totalItems == 0 ? 0 : query.page() * pageSize + testCases.size();
 
 		return new TestCasesPageView(
 				project,
@@ -93,6 +95,8 @@ public class TestCaseService {
 				allMatchingTestCaseKeys,
 				query.page(),
 				pageSize,
+				rangeFrom,
+				rangeTo,
 				totalItems,
 				totalPages,
 				lastPage

@@ -16,6 +16,9 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import com.qligent.triage.llm.AiSortValidator;
 import com.qligent.triage.llm.LlmClient;
+import com.qligent.triage.llm.LlmPromptTemplateType;
+import com.qligent.triage.llm.LlmRuntimeSettings;
+import com.qligent.triage.llm.PromptTemplateStore;
 import com.qligent.triage.llm.WeightValidator;
 import com.qligent.triage.llm.dto.AiSortResponse;
 import com.qligent.triage.model.Project;
@@ -42,6 +45,7 @@ public class PrioritizationService {
 	private final SuggestedTestCycleStorage storage;
 	private final ZephyrScaleClient zephyrScaleClient;
 	private final ObjectMapper objectMapper;
+	private final LlmRuntimeSettings llmRuntimeSettings;
 
 	public PrioritizationService(
 			PrioritizationArtifactService artifactService,
@@ -51,7 +55,8 @@ public class PrioritizationService {
 			AiSortValidator aiSortValidator,
 			SuggestedTestCycleStorage storage,
 			ZephyrScaleClient zephyrScaleClient,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper,
+			LlmRuntimeSettings llmRuntimeSettings) {
 		this.artifactService = artifactService;
 		this.promptRenderer = promptRenderer;
 		this.llmClient = llmClient;
@@ -60,6 +65,7 @@ public class PrioritizationService {
 		this.storage = storage;
 		this.zephyrScaleClient = zephyrScaleClient;
 		this.objectMapper = objectMapper;
+		this.llmRuntimeSettings = llmRuntimeSettings;
 	}
 
 	public SuggestedTestCycle prioritize(Project project, List<String> testCaseKeys) {
@@ -70,13 +76,24 @@ public class PrioritizationService {
 			Project project,
 			List<String> testCaseKeys,
 			PrioritizationProgressListener progressListener) {
+		return prioritize(project, testCaseKeys, progressListener, null);
+	}
+
+	public SuggestedTestCycle prioritize(
+			Project project,
+			List<String> testCaseKeys,
+			PrioritizationProgressListener progressListener,
+			PrioritizationCancellation cancellation) {
 		if (testCaseKeys == null || testCaseKeys.size() < 2) {
 			throw new IllegalArgumentException("At least two test cases are required for prioritization.");
 		}
 
+		checkNotCancelled(cancellation);
+
 		String projectKey = zephyrScaleClient.resolveProjectKey(project);
 		int sequence = artifactService.resolveNextSequence(projectKey);
 		var artifactFolder = artifactService.createArtifactFolder(projectKey, sequence);
+		notifyArtifactFolderCreated(progressListener, artifactFolder);
 
 		Map<Long, String> statusNames = loadStatusNames(projectKey);
 		Map<Long, String> priorityNames = loadPriorityNames(projectKey);
@@ -84,7 +101,9 @@ public class PrioritizationService {
 		List<SuggestedTestCycle.SuggestedTestCaseEntry> entries = new ArrayList<>();
 		int totalTests = testCaseKeys.size();
 		for (int index = 0; index < testCaseKeys.size(); index++) {
+			checkNotCancelled(cancellation);
 			String testCaseKey = testCaseKeys.get(index);
+			notifyTestStarted(progressListener, index + 1, totalTests, testCaseKey);
 			entries.add(processTestCase(
 					testCaseKey,
 					artifactFolder.path(),
@@ -93,6 +112,7 @@ public class PrioritizationService {
 			notifyTestCompleted(progressListener, index + 1, totalTests);
 		}
 
+		checkNotCancelled(cancellation);
 		notifyAiSortStarted(progressListener);
 		String aiSortPayload = buildAiSortPayload(entries);
 		AiSortResponse aiSortResponse = llmClient.requestAiSort(aiSortPayload);
@@ -121,6 +141,9 @@ public class PrioritizationService {
 				projectKey,
 				artifactFolder.createdAtMillis(),
 				artifactFolder.folderName(),
+				PromptTemplateStore.llmKey(llmRuntimeSettings.resolveModel(), llmRuntimeSettings.numCtx()),
+				llmRuntimeSettings.activeVersion(LlmPromptTemplateType.AI_SORT),
+				llmRuntimeSettings.activeVersion(LlmPromptTemplateType.WEIGHTS),
 				finalEntries);
 		storage.save(cycle);
 		log.info(
@@ -207,6 +230,30 @@ public class PrioritizationService {
 		}
 		String statusName = statusNames.getOrDefault(execution.testExecutionStatus().id(), "").toLowerCase();
 		return statusName.contains("fail");
+	}
+
+	private static void notifyArtifactFolderCreated(
+			PrioritizationProgressListener progressListener,
+			PrioritizationArtifactService.ArtifactFolder folder) {
+		if (progressListener != null) {
+			progressListener.onArtifactFolderCreated(folder);
+		}
+	}
+
+	private static void checkNotCancelled(PrioritizationCancellation cancellation) {
+		if (cancellation != null && cancellation.isCancelled()) {
+			throw new PrioritizationCancelledException();
+		}
+	}
+
+	private static void notifyTestStarted(
+			PrioritizationProgressListener progressListener,
+			int currentTest,
+			int totalTests,
+			String testCaseKey) {
+		if (progressListener != null) {
+			progressListener.onTestStarted(currentTest, totalTests, testCaseKey);
+		}
 	}
 
 	private static void notifyTestCompleted(

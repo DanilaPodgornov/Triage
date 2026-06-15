@@ -2,5 +2,8 @@ zephyr:
   api-token: test-token
 
 triage:
-  llm-artifacts-dir: build/test-llm
+  llm-artifacts-dir: build/test-llm/io
   suggested-cycles-dir: build/test-suggested_test_cycles
+
+llm:
+  prompt-templates-dir: ./llm/prompt_templates

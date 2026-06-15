@@ -16,13 +16,19 @@ public record SuggestedTestCycle(
 		String projectKey,
 		long createdAt,
 		String artifactFolder,
+		String llm,
+		String aisortPromptVersion,
+		String weightsPromptVersion,
 		String sortField,
 		String sortDirection,
+		String zephyrTestCycleKey,
 		List<SuggestedTestCaseEntry> tests
 ) {
 
 	public static final String DEFAULT_SORT_FIELD = "aiSort";
 	public static final String DEFAULT_SORT_DIRECTION = "DESC";
+	public static final String LEGACY_LLM = "qwen2.5-3b_ctx8192";
+	public static final String LEGACY_PROMPT_VERSION = "0.1.0";
 
 	public SuggestedTestCycle withStatus(SuggestedTestCycleStatus status) {
 		return new SuggestedTestCycle(
@@ -32,8 +38,46 @@ public record SuggestedTestCycle(
 				projectKey,
 				createdAt,
 				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
 				sortField,
 				sortDirection,
+				zephyrTestCycleKey,
+				tests);
+	}
+
+	public SuggestedTestCycle withZephyrTestCycleKey(String key) {
+		return new SuggestedTestCycle(
+				suggestedTestCycleKey,
+				suggestedTestCycleName,
+				suggestedTestCycleStatus,
+				projectKey,
+				createdAt,
+				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
+				sortField,
+				sortDirection,
+				key,
+				tests);
+	}
+
+	public SuggestedTestCycle withName(String name) {
+		return new SuggestedTestCycle(
+				suggestedTestCycleKey,
+				name,
+				suggestedTestCycleStatus,
+				projectKey,
+				createdAt,
+				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
+				sortField,
+				sortDirection,
+				zephyrTestCycleKey,
 				tests);
 	}
 
@@ -45,8 +89,12 @@ public record SuggestedTestCycle(
 				projectKey,
 				createdAt,
 				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
 				field,
 				direction,
+				zephyrTestCycleKey,
 				tests);
 	}
 
@@ -64,6 +112,28 @@ public record SuggestedTestCycle(
 			long createdAt,
 			String artifactFolder,
 			List<SuggestedTestCaseEntry> tests) {
+		return create(
+				cycleKey,
+				cycleName,
+				projectKey,
+				createdAt,
+				artifactFolder,
+				LEGACY_LLM,
+				LEGACY_PROMPT_VERSION,
+				LEGACY_PROMPT_VERSION,
+				tests);
+	}
+
+	public static SuggestedTestCycle create(
+			String cycleKey,
+			String cycleName,
+			String projectKey,
+			long createdAt,
+			String artifactFolder,
+			String llm,
+			String aisortPromptVersion,
+			String weightsPromptVersion,
+			List<SuggestedTestCaseEntry> tests) {
 		return new SuggestedTestCycle(
 				cycleKey,
 				cycleName,
@@ -71,9 +141,44 @@ public record SuggestedTestCycle(
 				projectKey,
 				createdAt,
 				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
 				DEFAULT_SORT_FIELD,
 				DEFAULT_SORT_DIRECTION,
+				null,
 				new ArrayList<>(tests));
+	}
+
+	@JsonCreator
+	public static SuggestedTestCycle fromJson(
+			@JsonProperty("suggestedTestCycleKey") String suggestedTestCycleKey,
+			@JsonProperty("suggestedTestCycleName") String suggestedTestCycleName,
+			@JsonProperty("suggestedTestCycleStatus") String suggestedTestCycleStatus,
+			@JsonProperty("projectKey") String projectKey,
+			@JsonProperty("createdAt") long createdAt,
+			@JsonProperty("artifactFolder") String artifactFolder,
+			@JsonProperty(value = "llm", required = false) String llm,
+			@JsonProperty(value = "aisortPromptVersion", required = false) String aisortPromptVersion,
+			@JsonProperty(value = "weightsPromptVersion", required = false) String weightsPromptVersion,
+			@JsonProperty("sortField") String sortField,
+			@JsonProperty("sortDirection") String sortDirection,
+			@JsonProperty(value = "zephyrTestCycleKey", required = false) String zephyrTestCycleKey,
+			@JsonProperty("tests") List<SuggestedTestCaseEntry> tests) {
+		return new SuggestedTestCycle(
+				suggestedTestCycleKey,
+				suggestedTestCycleName,
+				suggestedTestCycleStatus,
+				projectKey,
+				createdAt,
+				artifactFolder,
+				llm != null ? llm : LEGACY_LLM,
+				aisortPromptVersion != null ? aisortPromptVersion : LEGACY_PROMPT_VERSION,
+				weightsPromptVersion != null ? weightsPromptVersion : LEGACY_PROMPT_VERSION,
+				sortField,
+				sortDirection,
+				zephyrTestCycleKey,
+				tests);
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)

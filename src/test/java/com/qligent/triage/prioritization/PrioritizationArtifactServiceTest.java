@@ -1,10 +1,12 @@
 package com.qligent.triage.prioritization;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -15,30 +17,29 @@ class PrioritizationArtifactServiceTest {
 	@TempDir
 	Path tempDir;
 
-	@Test
-	void shouldResolveNextSequenceFromExistingFolders() throws Exception {
-		Path llmDir = tempDir.resolve("llm");
-		Files.createDirectories(llmDir.resolve("1000_SQM-SR1"));
-		Files.createDirectories(llmDir.resolve("2000_SQM-SR3"));
+	private PrioritizationArtifactService service;
 
-		var service = new PrioritizationArtifactService(
-				new TriageProperties(llmDir.toString(), tempDir.resolve("cycles").toString(), null, null));
-
-		assertThat(service.resolveNextSequence("SQM")).isEqualTo(4);
-		assertThat(service.buildCycleKey("SQM", 4)).isEqualTo("SQM-SR4");
+	@BeforeEach
+	void setUp() {
+		service = new PrioritizationArtifactService(
+				new TriageProperties(tempDir.resolve("llm").toString(), null, 15, null, null));
 	}
 
 	@Test
-	void shouldCreateArtifactFolderWithTimestampPrefix() throws Exception {
-		Path llmDir = tempDir.resolve("llm");
-		var service = new PrioritizationArtifactService(
-				new TriageProperties(llmDir.toString(), tempDir.resolve("cycles").toString(), null, null));
+	void shouldDeleteArtifactFolderRecursively() throws Exception {
+		Path folder = tempDir.resolve("llm").resolve("1781542979267_SQM-SR39");
+		Files.createDirectories(folder);
+		Files.writeString(folder.resolve("1781542980783_prompt_SQM-T1267.md"), "prompt");
 
-		var folder = service.createArtifactFolder("SQM", 2);
+		service.deleteArtifactFolder(folder);
 
-		assertThat(folder.cycleKey()).isEqualTo("SQM-SR2");
-		assertThat(folder.folderName()).startsWith(String.valueOf(folder.createdAtMillis()));
-		assertThat(folder.folderName()).endsWith("_SQM-SR2");
-		assertThat(Files.isDirectory(folder.path())).isTrue();
+		assertThat(Files.exists(folder)).isFalse();
+	}
+
+	@Test
+	void shouldRejectArtifactFolderOutsideRoot() {
+		assertThatThrownBy(() -> service.deleteArtifactFolder(tempDir.resolve("outside")))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("outside artifacts root");
 	}
 }

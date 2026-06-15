@@ -56,6 +56,33 @@ class SuggestedTestCycleStorageTest {
 	}
 
 	@Test
+	void shouldPersistLlmMetadataInJson() throws Exception {
+		var storage = storage(tempDir);
+		var cycle = SuggestedTestCycle.create(
+				"SQM-SR1",
+				"Cycle 1",
+				"SQM",
+				1781453505000L,
+				"1781453505000_SQM-SR1",
+				"qwen3.5-2b_ctx4096",
+				"0.2.0",
+				"0.3.0",
+				List.of());
+
+		storage.save(cycle);
+
+		var loaded = storage.findByKey("SQM-SR1").orElseThrow();
+		assertThat(loaded.llm()).isEqualTo("qwen3.5-2b_ctx4096");
+		assertThat(loaded.aisortPromptVersion()).isEqualTo("0.2.0");
+		assertThat(loaded.weightsPromptVersion()).isEqualTo("0.3.0");
+
+		String json = Files.readString(tempDir.resolve("suggested_test_cycles").resolve("SQM-SR1.json"));
+		assertThat(json).contains("\"llm\" : \"qwen3.5-2b_ctx4096\"");
+		assertThat(json).contains("\"aisortPromptVersion\" : \"0.2.0\"");
+		assertThat(json).contains("\"weightsPromptVersion\" : \"0.3.0\"");
+	}
+
+	@Test
 	void shouldPersistSortStateInJson() throws Exception {
 		var storage = storage(tempDir);
 		var cycle = SuggestedTestCycle.create(
@@ -78,11 +105,26 @@ class SuggestedTestCycleStorageTest {
 		assertThat(json).contains("\"sortDirection\" : \"ASC\"");
 	}
 
+	@Test
+	void shouldResolveCycleJsonPathUnderCyclesDirectory() {
+		var storage = storage(tempDir);
+		Path path = storage.cycleJsonPath("SQM-SR1");
+		assertThat(path).isEqualTo(tempDir.resolve("suggested_test_cycles").resolve("SQM-SR1.json"));
+	}
+
+	@Test
+	void shouldRejectInvalidCycleKeyForJsonPath() {
+		var storage = storage(tempDir);
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> storage.cycleJsonPath("../secrets"))
+				.isInstanceOf(IllegalArgumentException.class);
+	}
+
 	private static SuggestedTestCycleStorage storage(Path tempDir) {
 		return new SuggestedTestCycleStorage(
 				new TriageProperties(
 						tempDir.resolve("llm").toString(),
 						tempDir.resolve("suggested_test_cycles").toString(),
+						15,
 						null,
 						null),
 				new ObjectMapper());

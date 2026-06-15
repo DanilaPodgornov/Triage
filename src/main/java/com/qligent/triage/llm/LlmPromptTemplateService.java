@@ -1,24 +1,20 @@
 package com.qligent.triage.llm;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 import com.qligent.triage.config.LlmProperties;
 
 @Service
 public class LlmPromptTemplateService {
 
-	private final LlmProperties properties;
-	private final ResourceLoader resourceLoader;
+	private final LlmRuntimeSettings runtimeSettings;
+	private final PromptTemplateStore promptTemplateStore;
 
-	public LlmPromptTemplateService(LlmProperties properties, ResourceLoader resourceLoader) {
-		this.properties = properties;
-		this.resourceLoader = resourceLoader;
+	public LlmPromptTemplateService(
+			LlmRuntimeSettings runtimeSettings,
+			PromptTemplateStore promptTemplateStore) {
+		this.runtimeSettings = runtimeSettings;
+		this.promptTemplateStore = promptTemplateStore;
 	}
 
 	public String getTemplate() {
@@ -39,23 +35,23 @@ public class LlmPromptTemplateService {
 	}
 
 	public String templateResourceName(LlmPromptTemplateType type) {
-		return sanitizeModel(properties.model()) + "_ctx" + properties.numCtx() + "_" + type.fileSuffix() + ".md";
+		String version = promptTemplateStore.resolveActiveVersion(
+				runtimeSettings.resolveModel(),
+				runtimeSettings.numCtx(),
+				type,
+				runtimeSettings.activeVersion(type));
+		return promptTemplateStore.templateFileName(
+				runtimeSettings.resolveModel(),
+				runtimeSettings.numCtx(),
+				type,
+				version);
 	}
 
 	private String loadTemplate(LlmPromptTemplateType type) {
-		String location = "classpath:llm_prompt_templates/" + templateResourceName(type);
-		try {
-			Resource resource = resourceLoader.getResource(location);
-			if (!resource.exists()) {
-				throw new IllegalStateException("LLM prompt template not found: " + location);
-			}
-			return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8).trim();
-		} catch (IOException exception) {
-			throw new IllegalStateException("Failed to load LLM prompt template from " + location, exception);
-		}
-	}
-
-	private static String sanitizeModel(String model) {
-		return model.replace(':', '-').replace('/', '-');
+		return promptTemplateStore.readActive(
+				runtimeSettings.resolveModel(),
+				runtimeSettings.numCtx(),
+				type,
+				runtimeSettings.activeVersion(type));
 	}
 }

@@ -2,15 +2,19 @@ package com.qligent.triage.zephyr;
 
 import java.util.Optional;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.qligent.triage.config.ZephyrProperties;
+import com.qligent.triage.zephyr.dto.CreateTestCycleRequest;
+import com.qligent.triage.zephyr.dto.CreateTestExecutionRequest;
 import com.qligent.triage.zephyr.dto.FolderDto;
 import com.qligent.triage.zephyr.dto.PriorityDto;
 import com.qligent.triage.zephyr.dto.StatusDto;
 import com.qligent.triage.zephyr.dto.TestCaseDetailDto;
 import com.qligent.triage.zephyr.dto.TestCaseDto;
+import com.qligent.triage.zephyr.dto.TestCycleDto;
 import com.qligent.triage.zephyr.dto.TestExecutionDto;
 import com.qligent.triage.zephyr.dto.TestExecutionIssueLinkDto;
 import com.qligent.triage.zephyr.dto.ZephyrPage;
@@ -106,6 +110,24 @@ public class ZephyrScaleClient {
 				.retrieve()
 				.body(new org.springframework.core.ParameterizedTypeReference<>() {
 				});
+	}
+
+	public TestCycleDto createTestCycle(CreateTestCycleRequest request) {
+		return restClient.post()
+				.uri("/testcycles")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(request)
+				.retrieve()
+				.body(TestCycleDto.class);
+	}
+
+	public void createTestExecution(CreateTestExecutionRequest request) {
+		restClient.post()
+				.uri("/testexecutions")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(request)
+				.retrieve()
+				.toBodilessEntity();
 	}
 
 	public String resolveProjectKey(com.qligent.triage.model.Project project) {
