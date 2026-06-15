@@ -1,6 +1,7 @@
 package com.qligent.triage.llm;
 
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import com.qligent.triage.config.LlmProperties;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import com.qligent.triage.llm.dto.AiSortResponse;
@@ -60,12 +62,21 @@ public class LlmClient {
 		String userPrompt = promptTemplateService.formatWeightsPrompt(testCaseDataMarkdown);
 		String rawResponse = chatJson(userPrompt, "attribute weights");
 		try {
-			var parsed = objectMapper.readValue(rawResponse, com.qligent.triage.llm.dto.AttributeWeightsResponse.class);
-			return parsed.asMap();
+			return parseAttributeWeightsJson(rawResponse);
 		} catch (Exception exception) {
 			log.error("Failed to parse attribute weights JSON. Raw response:\n{}", rawResponse);
 			throw new IllegalStateException("Failed to parse attribute weights JSON.", exception);
 		}
+	}
+
+	Map<String, Double> parseAttributeWeightsJson(String rawResponse) throws Exception {
+		JsonNode root = objectMapper.readTree(rawResponse);
+		Map<String, Double> weights = new LinkedHashMap<>();
+		for (String key : AttributeWeightKeys.ALL) {
+			JsonNode node = root.get(key);
+			weights.put(key, node == null || node.isNull() ? 0.0 : node.asDouble());
+		}
+		return weights;
 	}
 
 	public AiSortResponse requestAiSort(String testCasesJson) {

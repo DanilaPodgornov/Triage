@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout :: layout(~{::main-content}, 'Suggested Test Cycles', false)}">
+      th:replace="~{layout :: layout(~{::main-content}, 'Suggested Test Cycles', false, ~{})}">
 <th:block th:fragment="main-content">
     <section class="tab-content" id="suggested-cycles-app" th:attr="data-project=${project}">
         <table class="data-table">

@@ -13,9 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const cycleKey = app.dataset.cycleKey;
     const project = app.dataset.project || 'B2C';
     let sortField = app.dataset.sortField || 'aiSort';
-    let sortDirection = app.dataset.sortDirection || 'DESC';
-    const initialSortField = sortField;
-    const initialSortDirection = sortDirection;
+    let sortDirection = normalizeDirection(app.dataset.sortDirection || 'DESC');
+    let savedSortField = sortField;
+    let savedSortDirection = sortDirection;
 
     let tests = [];
     try {
@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (sortField === field) {
-                sortDirection = sortDirection === 'ASC' ? 'DESC' : 'ASC';
+                sortDirection = sortDirection === 'DESC' ? 'ASC' : 'DESC';
             } else {
                 sortField = field;
-                sortDirection = field === 'key' || field === 'name' || field === 'lastExecutionStatus' ? 'ASC' : 'DESC';
+                sortDirection = 'DESC';
             }
             renderTable();
             updateButtonsState();
@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         app.dataset.sortField = sortField;
         app.dataset.sortDirection = sortDirection;
+        savedSortField = sortField;
+        savedSortDirection = sortDirection;
         updateButtonsState();
     });
 
@@ -77,18 +79,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const sorted = [...tests].sort((left, right) => compareEntries(left, right, sortField, sortDirection));
         tableBody.innerHTML = sorted.map(entry => `
             <tr>
-                <td>${escapeHtml(entry.key)}</td>
-                <td>${escapeHtml(entry.name || '-')}</td>
-                <td>${formatWeight(entry.weights, 'priority')}</td>
-                <td>${formatWeight(entry.weights, 'status')}</td>
-                <td>${formatWeight(entry.weights, 'labels')}</td>
-                <td>${formatWeight(entry.weights, 'executionsCount')}</td>
-                <td>${formatWeight(entry.weights, 'failuresCount')}</td>
-                <td>${formatWeight(entry.weights, 'lastExecutionStatus')}</td>
-                <td>${formatWeight(entry.weights, 'executionTime')}</td>
-                <td>${formatNumber(entry.aiSort)}</td>
+                <td class="col-key">${escapeHtml(entry.key)}</td>
+                <td class="col-name" title="${escapeAttr(entry.name || '-')}">${escapeHtml(entry.name || '-')}</td>
+                <td class="col-mono">${formatNumber(entry.aiSort)}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'priority')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'status')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'labels')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'executionsCount')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'failuresCount')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'failedExecutionsRatio')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'lastExecutionStatus')}</td>
+                <td class="col-mono">${formatWeight(entry.weights, 'executionTime')}</td>
             </tr>
         `).join('');
+        updateSortHeaders();
+    }
+
+    function updateSortHeaders() {
+        document.querySelectorAll('#suggested-cycle-table .sortable-col').forEach(header => {
+            header.classList.remove('sort-active', 'sort-asc', 'sort-desc');
+            const badge = header.querySelector('.sort-header__badge');
+            if (badge) {
+                badge.textContent = '';
+            }
+
+            if (header.dataset.sortField !== sortField) {
+                return;
+            }
+
+            header.classList.add('sort-active', sortDirection === 'ASC' ? 'sort-asc' : 'sort-desc');
+            const sortIcon = sortDirection === 'ASC' ? 'arrow_drop_up' : 'arrow_drop_down';
+            if (badge) {
+                badge.textContent = sortIcon;
+            }
+        });
     }
 
     function compareEntries(left, right, field, direction) {
@@ -113,9 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (field === 'aiSort') {
             return entry.aiSort ?? 0;
         }
-        if (field === 'lastExecutionStatus') {
-            return entry.metrics?.lastExecutionStatus || '';
-        }
         return entry.weights?.[field] ?? 0;
     }
 
@@ -138,8 +159,19 @@ document.addEventListener('DOMContentLoaded', () => {
             .replaceAll('"', '&quot;');
     }
 
+    function escapeAttr(value) {
+        return String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('"', '&quot;')
+            .replaceAll('<', '&lt;');
+    }
+
+    function normalizeDirection(direction) {
+        return String(direction).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    }
+
     function isDirty() {
-        return sortField !== initialSortField || sortDirection !== initialSortDirection;
+        return sortField !== savedSortField || sortDirection !== savedSortDirection;
     }
 
     function updateButtonsState() {
@@ -150,4 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderTable();
     updateButtonsState();
+
+    document.addEventListener('triage:locale-changed', () => {
+        if (window.TriageI18n) {
+            window.TriageI18n.applyTranslations(app);
+        }
+        updateSortHeaders();
+    });
 });

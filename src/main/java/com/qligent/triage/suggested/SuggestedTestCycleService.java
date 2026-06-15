@@ -34,7 +34,18 @@ public class SuggestedTestCycleService {
 
 	public void saveSortState(String cycleKey, String sortField, String sortDirection) {
 		var existing = getByKey(cycleKey);
-		storage.update(existing.withSortState(sortField, sortDirection));
+		String normalizedField = sortField == null || sortField.isBlank()
+				? SuggestedTestCycle.DEFAULT_SORT_FIELD
+				: sortField.trim();
+		String normalizedDirection = normalizeSortDirection(sortDirection);
+		storage.update(existing.withSortState(normalizedField, normalizedDirection));
+	}
+
+	private static String normalizeSortDirection(String sortDirection) {
+		if (sortDirection != null && sortDirection.trim().equalsIgnoreCase("ASC")) {
+			return "ASC";
+		}
+		return "DESC";
 	}
 
 	public void sendToZephyr(String cycleKey) {

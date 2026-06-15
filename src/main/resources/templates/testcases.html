@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout :: layout(~{::main-content}, null, true)}">
+      th:replace="~{layout :: layout(~{::main-content}, null, true, ~{})}">
 <th:block th:fragment="main-content">
     <div class="testcases-page" id="testcases-app" th:attr="data-project=${project}">
         <header class="testcases-page__header">

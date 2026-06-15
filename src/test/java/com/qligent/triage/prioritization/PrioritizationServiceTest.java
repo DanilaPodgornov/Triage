@@ -149,6 +149,7 @@ class PrioritizationServiceTest {
 				"labels", 0.1,
 				"executionsCount", 0.2,
 				"failuresCount", 0.1,
+				"failedExecutionsRatio", 0.0,
 				"lastExecutionStatus", 0.1,
 				"executionTime", 0.2);
 	}

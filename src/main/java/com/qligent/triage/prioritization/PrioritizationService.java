@@ -189,10 +189,14 @@ public class PrioritizationService {
 		long totalExecutionTime = executions.stream()
 				.mapToLong(execution -> execution.executionTime() == null ? 0L : execution.executionTime())
 				.sum();
+		double failedExecutionsRatio = SuggestedTestCycle.TestMetrics.computeFailedExecutionsRatio(
+				failedExecutionsCount,
+				executions.size());
 		return new SuggestedTestCycle.TestMetrics(
 				executions.size(),
 				failuresCount,
 				failedExecutionsCount,
+				failedExecutionsRatio,
 				lastStatus,
 				totalExecutionTime);
 	}

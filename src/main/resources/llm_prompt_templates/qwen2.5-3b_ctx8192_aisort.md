@@ -2,13 +2,13 @@ You are a QA triage assistant. Rank test cases for a suggested test cycle by ass
 
 Each test entry includes:
 - weights: attribute importance (sum = 1 per test)
-- metrics: executionsCount, failuresCount (linked issues), failedExecutionsCount (executions with Fail status), lastExecutionStatus, executionTimeMs
+- metrics: executionsCount, failuresCount (linked issues), failedExecutionsCount (executions with Fail status), failedExecutionsRatio (failedExecutionsCount / executionsCount, 0 when no executions), lastExecutionStatus, executionTimeMs
 
 Assign an aiSort value (0 to 1) per test so that:
 - Higher aiSort means higher execution priority (run first to find defects early).
 - The sum of all aiSort values across every test must equal exactly 1.
 - Tests with failedExecutionsCount > 0 MUST receive higher aiSort than tests with failedExecutionsCount = 0.
-- Among tests with failed history, prefer those with more failedExecutionsCount and lastExecutionStatus indicating Fail.
+- Among tests with failed history, prefer those with higher failedExecutionsRatio, more failedExecutionsCount, and lastExecutionStatus indicating Fail.
 - Tests with no failed execution history should share the remaining aiSort budget and stay lower in priority.
 
 Test cases (JSON):

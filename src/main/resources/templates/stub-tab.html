@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout :: layout(~{::main-content}, ${pageTitle}, false)}">
+      th:replace="~{layout :: layout(~{::main-content}, ${pageTitle}, false, ~{})}">
 <th:block th:fragment="main-content">
     <section class="tab-content stub-content">
         <p data-i18n="stub.message">This section is under development.</p>

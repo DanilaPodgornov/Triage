@@ -305,51 +305,86 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const jobId = startResult.jobId;
+            if (!jobId) {
+                throw new Error(t('testcases.prioritizeFailedInvalidResponse'));
+            }
             const totalTests = startResult.totalTests ?? testCaseKeys.length;
 
+            function resolveRedirectUrl(jobStatus) {
+                if (jobStatus.redirectUrl) {
+                    return jobStatus.redirectUrl;
+                }
+                if (jobStatus.cycleKey) {
+                    return `/suggestedcycles/${encodeURIComponent(jobStatus.cycleKey)}?project=${encodeURIComponent(project)}`;
+                }
+                return null;
+            }
+
+            async function pollJobStatus() {
+                const statusResponse = await fetch(`/api/prioritize/jobs/${encodeURIComponent(jobId)}`);
+                const statusText = await statusResponse.text();
+                const jobStatus = JSON.parse(statusText);
+
+                if (!statusResponse.ok) {
+                    throw new Error(jobStatus.message || t('testcases.prioritizeFailedGeneric'));
+                }
+
+                updateTimerDisplay(jobStatus.elapsedMillis);
+
+                if (jobStatus.status === 'AI_SORT') {
+                    if (progressText) {
+                        progressText.textContent = t('testcases.progress.aiSort');
+                    }
+                } else if (progressText) {
+                    progressText.textContent = t('testcases.progress.tests', {
+                        completed: jobStatus.completedTests ?? 0,
+                        total: jobStatus.totalTests ?? totalTests
+                    });
+                }
+
+                if (jobStatus.status === 'COMPLETED') {
+                    const redirectUrl = resolveRedirectUrl(jobStatus);
+                    if (!redirectUrl) {
+                        throw new Error(t('testcases.prioritizeFailedInvalidResponse'));
+                    }
+                    return { ...jobStatus, redirectUrl };
+                }
+                if (jobStatus.status === 'FAILED') {
+                    throw new Error(jobStatus.errorMessage || t('testcases.prioritizeFailedGeneric'));
+                }
+                return null;
+            }
+
             await new Promise((resolve, reject) => {
-                pollTimerId = window.setInterval(async () => {
-                    try {
-                        const statusResponse = await fetch(`/api/prioritize/jobs/${encodeURIComponent(jobId)}`);
-                        const statusText = await statusResponse.text();
-                        const status = JSON.parse(statusText);
-
-                        if (!statusResponse.ok) {
-                            throw new Error(status.message || t('testcases.prioritizeFailedGeneric'));
-                        }
-
-                        updateTimerDisplay(status.elapsedMillis);
-
-                        if (status.status === 'AI_SORT') {
-                            if (progressText) {
-                                progressText.textContent = t('testcases.progress.aiSort');
-                            }
-                        } else if (progressText) {
-                            progressText.textContent = t('testcases.progress.tests', {
-                                completed: status.completedTests ?? 0,
-                                total: status.totalTests ?? totalTests
-                            });
-                        }
-
-                        if (status.status === 'COMPLETED') {
-                            window.clearInterval(pollTimerId);
-                            pollTimerId = null;
-                            resolve(status);
-                        } else if (status.status === 'FAILED') {
-                            window.clearInterval(pollTimerId);
-                            pollTimerId = null;
-                            reject(new Error(status.errorMessage || t('testcases.prioritizeFailedGeneric')));
-                        }
-                    } catch (pollError) {
+                const handlePollError = (pollError) => {
+                    if (pollTimerId != null) {
                         window.clearInterval(pollTimerId);
                         pollTimerId = null;
-                        reject(pollError);
                     }
-                }, 500);
-            }).then((status) => {
+                    reject(pollError);
+                };
+
+                const pollOnce = async () => {
+                    try {
+                        const completedStatus = await pollJobStatus();
+                        if (completedStatus) {
+                            if (pollTimerId != null) {
+                                window.clearInterval(pollTimerId);
+                                pollTimerId = null;
+                            }
+                            resolve(completedStatus);
+                        }
+                    } catch (pollError) {
+                        handlePollError(pollError);
+                    }
+                };
+
+                pollOnce();
+                pollTimerId = window.setInterval(pollOnce, 500);
+            }).then((jobStatus) => {
                 hideProgressModal();
                 clearStoredSelection();
-                window.location.href = status.redirectUrl;
+                window.location.href = jobStatus.redirectUrl;
             });
         } catch (error) {
             console.error(error);

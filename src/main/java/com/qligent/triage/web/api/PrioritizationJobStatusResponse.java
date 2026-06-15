@@ -5,6 +5,7 @@ public record PrioritizationJobStatusResponse(
 		int completedTests,
 		int totalTests,
 		long elapsedMillis,
+		String cycleKey,
 		String redirectUrl,
 		String errorMessage
 ) {

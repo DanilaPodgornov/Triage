@@ -167,7 +167,7 @@ class WebControllersTest {
 								"SQM-T1",
 								"Login",
 								Map.of("priority", 0.5, "status", 0.5),
-								new SuggestedTestCycle.TestMetrics(1, 0, 0, "Pass", 100L),
+								new SuggestedTestCycle.TestMetrics(1, 0, 0, 0.0, "Pass", 100L),
 								1.0)))
 		));
 
@@ -190,7 +190,7 @@ class WebControllersTest {
 								"SQM-T1453",
 								"Smoke test",
 								Map.of("priority", 0.5, "status", 0.5),
-								new SuggestedTestCycle.TestMetrics(1, 0, 0, "Pass", 100L),
+								new SuggestedTestCycle.TestMetrics(1, 0, 0, 0.0, "Pass", 100L),
 								0.15))));
 
 		mockMvc.perform(get("/suggestedcycles/SQM-SR1").param("project", "B2C"))

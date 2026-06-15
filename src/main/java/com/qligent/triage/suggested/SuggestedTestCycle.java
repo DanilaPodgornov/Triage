@@ -91,20 +91,34 @@ public record SuggestedTestCycle(
 			int executionsCount,
 			int failuresCount,
 			int failedExecutionsCount,
+			double failedExecutionsRatio,
 			String lastExecutionStatus,
 			long executionTimeMs
 	) {
+		public static double computeFailedExecutionsRatio(int failedExecutionsCount, int executionsCount) {
+			if (executionsCount <= 0) {
+				return 0.0;
+			}
+			return (double) failedExecutionsCount / executionsCount;
+		}
+
 		@JsonCreator
 		public static TestMetrics fromJson(
 				@JsonProperty("executionsCount") int executionsCount,
 				@JsonProperty("failuresCount") int failuresCount,
 				@JsonProperty(value = "failedExecutionsCount", required = false) Integer failedExecutionsCount,
+				@JsonProperty(value = "failedExecutionsRatio", required = false) Double failedExecutionsRatio,
 				@JsonProperty("lastExecutionStatus") String lastExecutionStatus,
 				@JsonProperty("executionTimeMs") long executionTimeMs) {
+			int failedCount = failedExecutionsCount != null ? failedExecutionsCount : 0;
+			double ratio = failedExecutionsRatio != null
+					? failedExecutionsRatio
+					: computeFailedExecutionsRatio(failedCount, executionsCount);
 			return new TestMetrics(
 					executionsCount,
 					failuresCount,
-					failedExecutionsCount != null ? failedExecutionsCount : 0,
+					failedCount,
+					ratio,
 					lastExecutionStatus,
 					executionTimeMs);
 		}

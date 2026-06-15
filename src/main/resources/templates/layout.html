@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs)"
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout (content, pageTitle, includeTestCasesJs, headExtras)"
       th:attr="data-default-theme=${defaultTheme}, data-default-locale=${defaultLocale}">
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <script th:src="@{/js/theme-init.js}"></script>
     <script th:src="@{/js/locale-init.js}"></script>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <th:block th:replace="${headExtras}"></th:block>
     <script th:src="@{/js/i18n.js}" defer></script>
     <script th:src="@{/js/theme.js}" defer></script>
     <script th:if="${includeTestCasesJs}" th:src="@{/js/llm-prompt.js}" defer></script>

@@ -52,9 +52,9 @@ public class PrioritizationJobService {
 					job.markAiSortStarted();
 				}
 			});
-			String redirectUrl = "/suggestedcycles/" + cycle.suggestedTestCycleKey()
-					+ "?project=" + project.label();
-			job.complete(redirectUrl);
+			String cycleKey = cycle.suggestedTestCycleKey();
+			String redirectUrl = "/suggestedcycles/" + cycleKey + "?project=" + project.label();
+			job.complete(cycleKey, redirectUrl);
 		} catch (Exception exception) {
 			job.fail(exception.getMessage() == null ? "Prioritization failed." : exception.getMessage());
 		}
@@ -67,6 +67,7 @@ public class PrioritizationJobService {
 		private final Instant startedAt;
 		private volatile PrioritizationJobStatus status;
 		private volatile int completedTests;
+		private volatile String cycleKey;
 		private volatile String redirectUrl;
 		private volatile String errorMessage;
 		private volatile Instant finishedAt;
@@ -82,25 +83,38 @@ public class PrioritizationJobService {
 			return new PrioritizationJob(id, totalTests, Instant.now(), PrioritizationJobStatus.RUNNING);
 		}
 
-		void updateTestProgress(int completedTests, int totalTests) {
+		synchronized void updateTestProgress(int completedTests, int totalTests) {
 			this.completedTests = completedTests;
 			this.status = PrioritizationJobStatus.RUNNING;
 		}
 
-		void markAiSortStarted() {
+		synchronized void markAiSortStarted() {
 			this.status = PrioritizationJobStatus.AI_SORT;
 		}
 
-		void complete(String redirectUrl) {
+		synchronized void complete(String cycleKey, String redirectUrl) {
+			this.cycleKey = cycleKey;
 			this.redirectUrl = redirectUrl;
 			this.status = PrioritizationJobStatus.COMPLETED;
 			this.finishedAt = Instant.now();
 		}
 
-		void fail(String errorMessage) {
+		synchronized void fail(String errorMessage) {
 			this.errorMessage = errorMessage;
 			this.status = PrioritizationJobStatus.FAILED;
 			this.finishedAt = Instant.now();
+		}
+
+		public synchronized JobStatusSnapshot snapshot() {
+			Instant end = finishedAt == null ? Instant.now() : finishedAt;
+			return new JobStatusSnapshot(
+					status,
+					completedTests,
+					totalTests,
+					end.toEpochMilli() - startedAt.toEpochMilli(),
+					cycleKey,
+					redirectUrl,
+					errorMessage);
 		}
 
 		public String id() {
@@ -131,6 +145,17 @@ public class PrioritizationJobService {
 		public String errorMessage() {
 			return errorMessage;
 		}
+	}
+
+	public record JobStatusSnapshot(
+			PrioritizationJobStatus status,
+			int completedTests,
+			int totalTests,
+			long elapsedMillis,
+			String cycleKey,
+			String redirectUrl,
+			String errorMessage
+	) {
 	}
 
 	public enum PrioritizationJobStatus {

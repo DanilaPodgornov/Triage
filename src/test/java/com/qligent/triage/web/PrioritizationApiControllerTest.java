@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.qligent.triage.config.TriageProperties;
 import com.qligent.triage.model.Project;
 import com.qligent.triage.prioritization.PrioritizationJobService;
+import com.qligent.triage.prioritization.PrioritizationJobService.JobStatusSnapshot;
 import com.qligent.triage.prioritization.PrioritizationJobService.PrioritizationJob;
 import com.qligent.triage.prioritization.PrioritizationJobService.PrioritizationJobStatus;
 import com.qligent.triage.prioritization.PrioritizationService;
@@ -66,14 +67,36 @@ class PrioritizationApiControllerTest {
 	}
 
 	@Test
+	void shouldReturnCompletedJobWithRedirectUrl() throws Exception {
+		PrioritizationJob job = org.mockito.Mockito.mock(PrioritizationJob.class);
+		given(job.snapshot()).willReturn(new JobStatusSnapshot(
+				PrioritizationJobStatus.COMPLETED,
+				2,
+				2,
+				5000L,
+				"SQM-SR2",
+				"/suggestedcycles/SQM-SR2?project=B2C",
+				null));
+		given(prioritizationJobService.getJob("job-1")).willReturn(job);
+
+		mockMvc.perform(get("/api/prioritize/jobs/job-1"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("COMPLETED"))
+				.andExpect(jsonPath("$.cycleKey").value("SQM-SR2"))
+				.andExpect(jsonPath("$.redirectUrl").value("/suggestedcycles/SQM-SR2?project=B2C"));
+	}
+
+	@Test
 	void shouldReturnJobStatus() throws Exception {
 		PrioritizationJob job = org.mockito.Mockito.mock(PrioritizationJob.class);
-		given(job.status()).willReturn(PrioritizationJobStatus.RUNNING);
-		given(job.completedTests()).willReturn(1);
-		given(job.totalTests()).willReturn(2);
-		given(job.elapsedMillis()).willReturn(5000L);
-		given(job.redirectUrl()).willReturn(null);
-		given(job.errorMessage()).willReturn(null);
+		given(job.snapshot()).willReturn(new JobStatusSnapshot(
+				PrioritizationJobStatus.RUNNING,
+				1,
+				2,
+				5000L,
+				null,
+				null,
+				null));
 		given(prioritizationJobService.getJob("job-1")).willReturn(job);
 
 		mockMvc.perform(get("/api/prioritize/jobs/job-1"))

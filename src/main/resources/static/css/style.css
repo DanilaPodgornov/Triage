@@ -485,6 +485,109 @@ body {
     margin-bottom: 16px;
 }
 
+#suggested-cycle-table .sortable-col {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+    overflow: visible;
+}
+
+#suggested-cycle-table .sort-header {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+#suggested-cycle-table .sort-header--left {
+    justify-content: flex-start;
+}
+
+#suggested-cycle-table .sort-header__label-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 1.2;
+}
+
+#suggested-cycle-table .sort-header__label {
+    white-space: nowrap;
+}
+
+#suggested-cycle-table .sort-header__badge {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    margin-left: 1px;
+    font-size: 18px;
+    line-height: 1;
+    color: #e3e3e3;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    pointer-events: none;
+    transform: translateY(calc(-100% + 1px));
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    overflow: visible;
+}
+
+#suggested-cycle-table .sort-header__badge:empty {
+    display: none;
+}
+
+[data-theme="light"] #suggested-cycle-table .sort-header__badge:not(:empty) {
+    color: #6b7280;
+}
+
+#suggested-cycle-table {
+    table-layout: fixed;
+}
+
+#suggested-cycle-table thead th {
+    font-family: "Roboto", Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+#suggested-cycle-table .col-key {
+    width: 7rem;
+}
+
+#suggested-cycle-table .col-mono {
+    width: 6.25rem;
+}
+
+#suggested-cycle-table .col-key,
+#suggested-cycle-table .col-mono {
+    text-align: center;
+}
+
+#suggested-cycle-table th.col-name,
+#suggested-cycle-table tbody .col-name {
+    width: 40%;
+    max-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+
+#suggested-cycle-table tbody .col-key,
+#suggested-cycle-table tbody .col-mono {
+    font-family: "Roboto Mono", Consolas, "Courier New", monospace;
+    font-weight: 400;
+}
+
+#suggested-cycle-table tbody .col-name {
+    font-family: "Roboto", Arial, Helvetica, sans-serif;
+    font-weight: 400;
+}
+
 .sortable-list {
     list-style: none;
     margin: 0;

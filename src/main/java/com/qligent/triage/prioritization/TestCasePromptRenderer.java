@@ -36,6 +36,18 @@ public class TestCasePromptRenderer {
 			builder.append("No executions found.\n");
 			return builder.toString();
 		}
+		long failedExecutionsCount = executions.stream()
+				.filter(execution -> isFailedStatus(
+						formatExecutionStatus(execution.testExecutionStatus(), statusNames)))
+				.count();
+		double failedExecutionsRatio = (double) failedExecutionsCount / executions.size();
+		builder.append("- Failed executions: ")
+				.append(failedExecutionsCount)
+				.append(" of ")
+				.append(executions.size())
+				.append(" (ratio ")
+				.append(String.format("%.4f", failedExecutionsRatio))
+				.append(")\n");
 		List<TestExecutionDto> recent = executions.stream()
 				.sorted(Comparator.comparing(
 						TestExecutionDto::actualEndDate,

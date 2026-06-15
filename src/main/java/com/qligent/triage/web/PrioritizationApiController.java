@@ -35,12 +35,14 @@ public class PrioritizationApiController {
 	@GetMapping("/jobs/{jobId}")
 	public ResponseEntity<PrioritizationJobStatusResponse> getJobStatus(@PathVariable String jobId) {
 		PrioritizationJob job = prioritizationJobService.getJob(jobId);
+		var snapshot = job.snapshot();
 		return ResponseEntity.ok(new PrioritizationJobStatusResponse(
-				job.status().name(),
-				job.completedTests(),
-				job.totalTests(),
-				job.elapsedMillis(),
-				job.redirectUrl(),
-				job.errorMessage()));
+				snapshot.status().name(),
+				snapshot.completedTests(),
+				snapshot.totalTests(),
+				snapshot.elapsedMillis(),
+				snapshot.cycleKey(),
+				snapshot.redirectUrl(),
+				snapshot.errorMessage()));
 	}
 }

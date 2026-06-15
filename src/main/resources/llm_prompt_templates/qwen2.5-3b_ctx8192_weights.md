@@ -6,12 +6,13 @@ Given the test case metadata and execution history below, return a JSON object w
 - labels (weight for labels/tags)
 - executionsCount (weight for number of past executions)
 - failuresCount (weight for linked issues / failure signals)
+- failedExecutionsRatio (weight for the share of executions with Fail status: failedExecutionsCount / executionsCount)
 - lastExecutionStatus (weight for the most recent execution outcome)
 - executionTime (weight for total/recent execution time)
 
 Rules:
 - Each value must be a number from 0 to 1 (inclusive).
-- All seven values must sum to exactly 1.
+- All eight values must sum to exactly 1.
 - Base weights on how useful each attribute is for detecting defects early.
 
 Test case data:
@@ -24,6 +25,7 @@ Respond with JSON only, matching this schema exactly:
   "labels": 0.0,
   "executionsCount": 0.0,
   "failuresCount": 0.0,
+  "failedExecutionsRatio": 0.0,
   "lastExecutionStatus": 0.0,
   "executionTime": 0.0
 }
