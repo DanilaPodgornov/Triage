@@ -2,6 +2,7 @@ param(
     [int]$Runs = 10,
     [string]$BaseUrl = "http://localhost:8080",
     [string]$Project = "B2C",
+    [string]$Model = "",
     [int]$PollIntervalSeconds = 2,
     [int]$PauseBetweenRunsSeconds = 2,
     [string[]]$TestKeys = @(
@@ -50,6 +51,19 @@ function Wait-PrioritizationJob {
 Write-Host "Batch prioritization: $Runs run(s), project=$Project, tests=$($TestKeys.Count)"
 Write-Host "Base URL: $BaseUrl"
 Write-Host "Cycles directory: $CyclesDir"
+if (-not [string]::IsNullOrWhiteSpace($Model)) {
+    Write-Host "Active model: $Model"
+    $modelBody = @{ model = $Model } | ConvertTo-Json -Compress
+    $modelResponse = Invoke-RestMethod -Uri "$BaseUrl/api/llm/models/active" -Method Put `
+        -ContentType "application/json; charset=utf-8" -Body $modelBody
+    if ($modelResponse.activeModel -ne $Model) {
+        throw "Failed to set active model to $Model (got $($modelResponse.activeModel))."
+    }
+}
+else {
+    $active = (Invoke-RestMethod -Uri "$BaseUrl/api/llm/models" -Method Get).activeModel
+    Write-Host "Active model (unchanged): $active"
+}
 Write-Host ""
 
 $results = @()
