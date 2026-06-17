@@ -1,0 +1,104 @@
+<mxfile host="Electron" agent="Triage">
+  <diagram id="idef0-a0" name="A-0">
+    <mxGraphModel dx="2020" dy="1201" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="a0" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;fontSize=12;align=center;verticalAlign=middle;" value="&lt;font face=&quot;Times New Roman&quot;&gt;Информационная система Triage&lt;/font&gt;" vertex="1">
+          <mxGeometry height="130" width="310" x="430" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-1" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="600" y="280" as="sourcePoint" />
+            <mxPoint x="600" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-2" connectable="0" parent="7OR3RCb1G04s3y6_HR64-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Шаблоны промптов&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.1333" as="geometry">
+            <mxPoint y="-27" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font face=&quot;Times New Roman&quot;&gt;A0&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="40" x="700" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-4" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="150" y="360" as="sourcePoint" />
+            <mxPoint x="430" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-5" connectable="0" parent="7OR3RCb1G04s3y6_HR64-4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Метаданные тестов&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0234" y="1" as="geometry">
+            <mxPoint y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-6" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="150" y="410" as="sourcePoint" />
+            <mxPoint x="430" y="410" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-7" connectable="0" parent="7OR3RCb1G04s3y6_HR64-6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;История выполнений&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0234" y="1" as="geometry">
+            <mxPoint y="-9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-8" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="740" y="360" as="sourcePoint" />
+            <mxPoint x="970" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-9" connectable="0" parent="7OR3RCb1G04s3y6_HR64-8" style="edgeLabel;html=1;align=center;verticalAlign=bottom;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Артефакты&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0261" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-10" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="740" y="388.8" as="sourcePoint" />
+            <mxPoint x="970" y="388.8" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-11" connectable="0" parent="7OR3RCb1G04s3y6_HR64-10" style="edgeLabel;html=1;align=center;verticalAlign=bottom;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Предлагаемый цикл (JSON)&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0261" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-12" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="740" y="420" as="sourcePoint" />
+            <mxPoint x="970" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-13" connectable="0" parent="7OR3RCb1G04s3y6_HR64-12" style="edgeLabel;html=1;align=center;verticalAlign=bottom;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Тестовый цикл в Zephyr&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0261" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-14" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="480" y="520" as="sourcePoint" />
+            <mxPoint x="480" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-15" connectable="0" parent="7OR3RCb1G04s3y6_HR64-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;LLM&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.6143" y="-2" as="geometry">
+            <mxPoint y="24" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-16" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="640" y="520" as="sourcePoint" />
+            <mxPoint x="640" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7OR3RCb1G04s3y6_HR64-17" connectable="0" parent="7OR3RCb1G04s3y6_HR64-16" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;font face=&quot;Times New Roman&quot;&gt;Zephyr Scale API&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.6143" y="-2" as="geometry">
+            <mxPoint y="24" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
