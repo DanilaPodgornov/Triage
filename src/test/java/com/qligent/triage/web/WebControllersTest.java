@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.qligent.triage.config.RuntimeCredentials;
+import com.qligent.triage.config.SecretsFileWriter;
 import com.qligent.triage.config.TriageProperties;
 import com.qligent.triage.llm.LlmPromptTemplateService;
 import com.qligent.triage.model.Project;
@@ -41,6 +43,7 @@ import com.qligent.triage.web.model.TestCasesPageView;
 
 @WebMvcTest(controllers = {
 		HomeController.class,
+		SetupController.class,
 		TestCaseController.class,
 		SuggestedTestCycleController.class,
 		SettingsController.class
@@ -63,6 +66,12 @@ class WebControllersTest {
 	@MockitoBean
 	private LlmPromptTemplateService llmPromptTemplateService;
 
+	@MockitoBean
+	private RuntimeCredentials runtimeCredentials;
+
+	@MockitoBean
+	private SecretsFileWriter secretsFileWriter;
+
 	@BeforeEach
 	void stubThemeDefaults() {
 		given(triageProperties.theme()).willReturn(new TriageProperties.Theme("system"));
@@ -72,7 +81,18 @@ class WebControllersTest {
 	}
 
 	@Test
-	void rootRedirectsToB2CTestCases() throws Exception {
+	void rootRedirectsToSetupWhenZephyrNotConfigured() throws Exception {
+		given(runtimeCredentials.isZephyrConfigured()).willReturn(false);
+
+		mockMvc.perform(get("/"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/setup"));
+	}
+
+	@Test
+	void rootRedirectsToB2CTestCasesWhenConfigured() throws Exception {
+		given(runtimeCredentials.isZephyrConfigured()).willReturn(true);
+
 		mockMvc.perform(get("/"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/testcases?project=B2C"));
@@ -100,7 +120,7 @@ class WebControllersTest {
 				1,
 				true
 		);
-		given(testCaseService.getTestCasesPage(eq(Project.B2C), any(TestCaseListQuery.class))).willReturn(pageView);
+		given(testCaseService.getTestCasesPage(eq(Project.B2C), any(TestCaseListQuery.class), eq(false))).willReturn(pageView);
 
 		mockMvc.perform(get("/testcases").param("project", "B2C"))
 				.andExpect(status().isOk())
@@ -140,7 +160,7 @@ class WebControllersTest {
 				SortDirection.DESC,
 				0,
 				15);
-		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(expectedQuery))).willReturn(pageView);
+		given(testCaseService.getTestCasesPage(eq(Project.B2C), eq(expectedQuery), eq(false))).willReturn(pageView);
 
 		mockMvc.perform(get("/testcases")
 						.param("project", "B2C")
@@ -152,7 +172,7 @@ class WebControllersTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("testcases"));
 
-		then(testCaseService).should().getTestCasesPage(eq(Project.B2C), eq(expectedQuery));
+		then(testCaseService).should().getTestCasesPage(eq(Project.B2C), eq(expectedQuery), eq(false));
 	}
 
 	@Test

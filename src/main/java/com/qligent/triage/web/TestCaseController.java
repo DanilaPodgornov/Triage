@@ -44,6 +44,7 @@ public class TestCaseController {
 			@RequestParam(defaultValue = "asc") String dir,
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(required = false) Integer size,
+			@RequestParam(defaultValue = "false") boolean show,
 			Model model) {
 		Project selectedProject = Project.fromLabel(project);
 		int basePageSize = triageProperties.testcasesPageSize();
@@ -56,11 +57,12 @@ public class TestCaseController {
 				SortDirection.fromParam(dir),
 				page,
 				pageSize);
-		var pageView = testCaseService.getTestCasesPage(selectedProject, query);
+		var pageView = testCaseService.getTestCasesPage(selectedProject, query, show);
 
 		model.addAttribute("activeTab", "testcases");
 		model.addAttribute("project", selectedProject.label());
 		model.addAttribute("pageView", pageView);
+		model.addAttribute("showTests", show);
 		model.addAttribute("defaultLlmPrompt", llmPromptTemplateService.getTemplate());
 		model.addAttribute("basePageSize", basePageSize);
 		return "testcases";

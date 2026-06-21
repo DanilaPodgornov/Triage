@@ -39,6 +39,22 @@ class TestCaseServiceTest {
 	}
 
 	@Test
+	void shouldSkipTestLoadingWhenIncludeTestsDisabled() {
+		when(zephyrScaleClient.resolveProjectKey(Project.B2C)).thenReturn("SQM");
+		when(zephyrScaleClient.getPriorities("SQM")).thenReturn(prioritiesPage());
+		when(zephyrScaleClient.getFolders("SQM", 0, 100)).thenReturn(emptyFoldersPage());
+		when(zephyrScaleClient.getStatuses("SQM", 0, 100)).thenReturn(emptyStatusesPage());
+
+		var query = new TestCaseListQuery(Optional.empty(), Optional.empty(), Optional.empty(), TestCaseSort.KEY, SortDirection.ASC, 0, 10);
+		var result = testCaseService.getTestCasesPage(Project.B2C, query, false);
+
+		assertThat(result.testCases()).isEmpty();
+		assertThat(result.allMatchingTestCaseKeys()).isEmpty();
+		assertThat(result.totalItems()).isZero();
+		assertThat(result.priorities()).isNotEmpty();
+	}
+
+	@Test
 	void shouldFilterByPriorityLocallyWhenPrioritySelected() {
 		when(zephyrScaleClient.resolveProjectKey(Project.B2C)).thenReturn("SQM");
 		when(zephyrScaleClient.getPriorities("SQM")).thenReturn(prioritiesPage());

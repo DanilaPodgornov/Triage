@@ -98,6 +98,25 @@ public record SuggestedTestCycle(
 				tests);
 	}
 
+	public SuggestedTestCycle withTests(List<SuggestedTestCaseEntry> newTests) {
+		return new SuggestedTestCycle(
+				suggestedTestCycleKey,
+				suggestedTestCycleName,
+				suggestedTestCycleStatus,
+				projectKey,
+				createdAt,
+				artifactFolder,
+				llm,
+				aisortPromptVersion,
+				weightsPromptVersion,
+				sortField,
+				sortDirection,
+				zephyrTestCycleKey,
+				new ArrayList<>(newTests));
+	}
+
+	public static final String MANUAL_SORT_FIELD = "manual";
+
 	public List<String> testCaseKeys() {
 		if (tests == null) {
 			return List.of();

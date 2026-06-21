@@ -1,4 +1,35 @@
+const FILTER_SELECT_IDS = ['priority-filter', 'folder-filter', 'status-filter', 'sort-filter', 'dir-filter'];
+
+function readFilterState() {
+    return Object.fromEntries(
+        FILTER_SELECT_IDS.map(id => [id, document.getElementById(id)?.value ?? ''])
+    );
+}
+
+function initFilterApplyButton() {
+    const applyBtn = document.getElementById('apply-filters-btn');
+    if (!applyBtn) {
+        return;
+    }
+
+    const appliedSnapshot = readFilterState();
+
+    function updateApplyButton() {
+        const current = readFilterState();
+        const dirty = FILTER_SELECT_IDS.some(id => current[id] !== appliedSnapshot[id]);
+        applyBtn.disabled = !dirty;
+    }
+
+    FILTER_SELECT_IDS.forEach(id => {
+        document.getElementById(id)?.addEventListener('change', updateApplyButton);
+    });
+
+    updateApplyButton();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    initFilterApplyButton();
+
     const app = document.getElementById('testcases-app');
     const prioritizeBtn = document.getElementById('prioritize-btn');
     const selectAllBtn = document.getElementById('select-all-btn');
@@ -18,7 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedKeys = loadSelection();
 
     function t(key, params) {
-        return window.TriageI18n ? window.TriageI18n.translate(key, params) : key;
+        if (!window.TriageI18n) {
+            return key;
+        }
+        return window.TriageI18n.translate(key, params) ?? key;
     }
 
     function buildSelectionStorageKey() {
@@ -187,6 +221,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function handlePostFilterNavigation() {
+        const params = new URLSearchParams(window.location.search);
+        const shouldScroll = params.get('show') === 'true';
+        const shouldSelectAll = params.get('select') === 'all';
+
+        if (shouldSelectAll && allMatchingKeys.length > 0) {
+            allMatchingKeys.forEach(key => selectedKeys.add(key));
+            syncCheckboxesFromSelection();
+            saveSelection();
+            updateUi();
+        }
+
+        if (shouldScroll) {
+            const listSection = document.getElementById('testcases-list-section');
+            if (listSection) {
+                window.requestAnimationFrame(() => {
+                    listSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            }
+        }
+
+        if (shouldSelectAll) {
+            params.delete('select');
+            const query = params.toString();
+            const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+            window.history.replaceState(null, '', nextUrl);
+        }
+    }
+
     document.querySelectorAll('.testcase-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', () => {
             if (checkbox.checked) {
@@ -220,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUi();
     initColumnToggles();
     syncScrollViewportMetrics();
+    handlePostFilterNavigation();
 
     const rowsPerPageSelect = document.getElementById('rows-per-page');
     if (rowsPerPageSelect) {
@@ -227,6 +291,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             params.set('size', rowsPerPageSelect.value);
             params.set('page', '0');
+            if (app?.dataset.showTests === 'true') {
+                params.set('show', 'true');
+            }
             window.location.search = params.toString();
         });
     }

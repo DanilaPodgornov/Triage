@@ -90,7 +90,8 @@ public class SuggestedTestCycleController {
 				cycleKey,
 				request.sortField(),
 				request.sortDirection(),
-				request.suggestedTestCycleName());
+				request.suggestedTestCycleName(),
+				request.orderedKeys());
 	}
 
 	@PostMapping("/api/suggestedcycles/{cycleKey}/send")

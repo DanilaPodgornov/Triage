@@ -20,10 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let savedSortField = sortField;
     let savedSortDirection = sortDirection;
     let savedName = nameInput ? nameInput.value : '';
+    let manualOrder = sortField === 'manual';
+    let savedOrderKeys = [];
+    let dragSourceKey = null;
 
     let tests = [];
     try {
         tests = JSON.parse(testsJsonEl.textContent || '[]');
+        savedOrderKeys = tests.map(entry => entry.key);
     } catch (error) {
         console.error('Failed to parse suggested cycle tests JSON.', error);
         return;
@@ -31,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('#suggested-cycle-table .sortable-col').forEach(header => {
         header.addEventListener('click', () => {
+            if (manualOrder) {
+                return;
+            }
             const field = header.dataset.sortField;
             if (!field) {
                 return;
@@ -51,23 +58,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     saveBtn.addEventListener('click', async () => {
+        const payload = {
+            sortField,
+            sortDirection,
+            suggestedTestCycleName: nameInput ? nameInput.value : null
+        };
+        if (manualOrder) {
+            payload.sortField = 'manual';
+            payload.sortDirection = 'ASC';
+            payload.orderedKeys = tests.map(entry => entry.key);
+        }
+
         const response = await fetch(`/api/suggestedcycles/${encodeURIComponent(cycleKey)}/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sortField,
-                sortDirection,
-                suggestedTestCycleName: nameInput ? nameInput.value : null
-            })
+            body: JSON.stringify(payload)
         });
         if (!response.ok) {
             alert('Failed to save sort state.');
             return;
         }
-        app.dataset.sortField = sortField;
-        app.dataset.sortDirection = sortDirection;
-        savedSortField = sortField;
-        savedSortDirection = sortDirection;
+        app.dataset.sortField = manualOrder ? 'manual' : sortField;
+        app.dataset.sortDirection = manualOrder ? 'ASC' : sortDirection;
+        savedSortField = app.dataset.sortField;
+        savedSortDirection = app.dataset.sortDirection;
+        savedOrderKeys = tests.map(entry => entry.key);
         if (nameInput) {
             savedName = nameInput.value;
             document.title = `${nameInput.value} — Triage`;
@@ -119,9 +134,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function renderTable() {
-        const sorted = [...tests].sort((left, right) => compareEntries(left, right, sortField, sortDirection));
-        tableBody.innerHTML = sorted.map(entry => `
-            <tr>
+        const rows = manualOrder
+            ? [...tests]
+            : [...tests].sort((left, right) => compareEntries(left, right, sortField, sortDirection));
+        tableBody.innerHTML = rows.map(entry => `
+            <tr draggable="true" data-test-key="${escapeAttr(entry.key)}">
+                <td class="col-drag">
+                    <span class="drag-handle material-symbols-outlined" aria-hidden="true" title="Drag to reorder">menu</span>
+                </td>
                 <td class="col-key">${escapeHtml(entry.key)}</td>
                 <td class="col-name" title="${escapeAttr(entry.name || '-')}">${escapeHtml(entry.name || '-')}</td>
                 <td class="col-mono">${formatNumber(entry.aiSort)}</td>
@@ -135,7 +155,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="col-mono">${formatWeight(entry.weights, 'executionTime')}</td>
             </tr>
         `).join('');
+        bindDragAndDrop();
         updateSortHeaders();
+    }
+
+    function bindDragAndDrop() {
+        tableBody.querySelectorAll('tr[data-test-key]').forEach(row => {
+            row.addEventListener('dragstart', event => {
+                if (app.dataset.status === 'Sent') {
+                    event.preventDefault();
+                    return;
+                }
+                dragSourceKey = row.dataset.testKey;
+                row.classList.add('dragging');
+                if (event.dataTransfer) {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', dragSourceKey);
+                }
+            });
+
+            row.addEventListener('dragend', () => {
+                row.classList.remove('dragging');
+                tableBody.querySelectorAll('tr.drag-over').forEach(target => target.classList.remove('drag-over'));
+                dragSourceKey = null;
+            });
+
+            row.addEventListener('dragover', event => {
+                if (app.dataset.status === 'Sent' || !dragSourceKey) {
+                    return;
+                }
+                event.preventDefault();
+                if (event.dataTransfer) {
+                    event.dataTransfer.dropEffect = 'move';
+                }
+                row.classList.add('drag-over');
+            });
+
+            row.addEventListener('dragleave', () => {
+                row.classList.remove('drag-over');
+            });
+
+            row.addEventListener('drop', event => {
+                event.preventDefault();
+                row.classList.remove('drag-over');
+                const sourceKey = dragSourceKey || event.dataTransfer?.getData('text/plain');
+                const targetKey = row.dataset.testKey;
+                if (!sourceKey || !targetKey || sourceKey === targetKey) {
+                    return;
+                }
+                reorderTests(sourceKey, targetKey);
+            });
+        });
+    }
+
+    function reorderTests(sourceKey, targetKey) {
+        const sourceIndex = tests.findIndex(entry => entry.key === sourceKey);
+        const targetIndex = tests.findIndex(entry => entry.key === targetKey);
+        if (sourceIndex < 0 || targetIndex < 0) {
+            return;
+        }
+        const [moved] = tests.splice(sourceIndex, 1);
+        tests.splice(targetIndex, 0, moved);
+        manualOrder = true;
+        sortField = 'manual';
+        sortDirection = 'ASC';
+        renderTable();
+        updateButtonsState();
     }
 
     function updateSortHeaders() {
@@ -146,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 badge.textContent = '';
             }
 
-            if (header.dataset.sortField !== sortField) {
+            if (manualOrder || header.dataset.sortField !== sortField) {
                 return;
             }
 
@@ -213,8 +298,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(direction).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     }
 
+    function orderChanged() {
+        const currentKeys = tests.map(entry => entry.key);
+        if (currentKeys.length !== savedOrderKeys.length) {
+            return true;
+        }
+        return currentKeys.some((key, index) => key !== savedOrderKeys[index]);
+    }
+
     function isDirty() {
         const nameChanged = nameInput ? nameInput.value !== savedName : false;
+        if (manualOrder) {
+            return orderChanged() || nameChanged;
+        }
         return sortField !== savedSortField || sortDirection !== savedSortDirection || nameChanged;
     }
 

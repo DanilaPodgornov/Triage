@@ -1,9 +1,9 @@
 package com.qligent.triage.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestClient;
 
 @Configuration
@@ -11,11 +11,16 @@ import org.springframework.web.client.RestClient;
 public class ApplicationConfig {
 
 	@Bean
-	RestClient zephyrRestClient(ZephyrProperties properties) {
+	RestClient zephyrRestClient(ZephyrProperties properties, RuntimeCredentials runtimeCredentials) {
+		ClientHttpRequestInterceptor authInterceptor = (request, body, execution) -> {
+			runtimeCredentials.zephyrApiToken()
+					.ifPresent(token -> request.getHeaders().setBearerAuth(token));
+			return execution.execute(request, body);
+		};
 		return RestClient.builder()
 				.baseUrl(properties.apiUrl())
-				.defaultHeader("Authorization", "Bearer " + properties.apiToken())
 				.defaultHeader("Accept", "application/json")
+				.requestInterceptor(authInterceptor)
 				.build();
 	}
 
@@ -28,14 +33,8 @@ public class ApplicationConfig {
 	}
 
 	@Bean(name = "jiraRestClient")
-	@ConditionalOnProperty(prefix = "jira", name = "api-url")
-	RestClient jiraRestClient(JiraProperties properties) {
-		String credentials = properties.email() + ":" + properties.apiToken();
-		String encodedCredentials = java.util.Base64.getEncoder()
-				.encodeToString(credentials.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+	RestClient jiraRestClient() {
 		return RestClient.builder()
-				.baseUrl(properties.apiUrl())
-				.defaultHeader("Authorization", "Basic " + encodedCredentials)
 				.defaultHeader("Accept", "application/json")
 				.build();
 	}

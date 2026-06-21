@@ -2,184 +2,9 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout :: layout(~{::main-content}, null, true, ~{})}">
 <th:block th:fragment="main-content">
-    <div class="testcases-page" id="testcases-app" th:attr="data-project=${project}, data-base-page-size=${basePageSize}">
+    <div class="testcases-page" id="testcases-app"
+         th:attr="data-project=${project}, data-base-page-size=${basePageSize}, data-show-tests=${showTests}">
         <main class="testcases-page__main">
-            <section class="testcases-tile testcases-tile--tests">
-                <header class="testcases-page__header">
-                    <div class="actions testcases-page__toolbar">
-                        <button type="button" id="select-all-btn" class="btn btn-secondary"
-                                th:disabled="${#lists.isEmpty(pageView.allMatchingTestCaseKeys)}"
-                                data-i18n="testcases.selectAll">Select All</button>
-                        <button type="button" id="prioritize-btn" class="btn btn-primary" disabled
-                                data-i18n="testcases.prioritize">Prioritize</button>
-                        <span id="selection-count" class="selection-count"></span>
-                    </div>
-                </header>
-
-                <div class="testcases-tile__body">
-                    <div class="testcases-page__list">
-                        <div class="testcases-table-scroll" id="testcases-table-scroll"
-                             th:classappend="${pageView.pageSize > basePageSize} ? ' is-scrollable-y' : ''"
-                             th:style="${pageView.pageSize > basePageSize} ? |--testcases-viewport-rows: ${basePageSize}| : null">
-                            <table class="data-table" id="testcases-table">
-                                <thead>
-                                <tr>
-                                    <th class="col-checkbox" data-column="select"></th>
-                                    <th class="col-key" data-column="key" data-i18n="testcases.col.key">Key</th>
-                                    <th class="col-priority" data-column="priority" data-i18n="testcases.col.priority">Priority</th>
-                                    <th class="col-status" data-column="status" data-i18n="testcases.col.status">Status</th>
-                                    <th class="col-folder" data-column="folder" data-i18n="testcases.col.folder">Folder</th>
-                                    <th class="col-name" data-column="name" data-i18n="testcases.col.name">Name</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:if="${#lists.isEmpty(pageView.testCases)}">
-                                    <td colspan="6" class="empty-row" data-i18n="testcases.empty">No test cases found.</td>
-                                </tr>
-                                <tr th:each="testCase : ${pageView.testCases}">
-                                    <td class="col-checkbox" data-column="select">
-                                        <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}"
-                                               th:value="${testCase.key}">
-                                        <label class="sr-only" th:for="'tc-' + ${testCase.key}"
-                                               th:text="'Select test case ' + ${testCase.key}">Select test case</label>
-                                    </td>
-                                    <td class="col-key" data-column="key" th:text="${testCase.key}"
-                                        th:attr="title=${testCase.key}"></td>
-                                    <td class="col-priority" data-column="priority" th:attr="title=${testCase.priority}">
-                                        <span th:if="${testCase.priorityColor != null}"
-                                              class="priority-badge"
-                                              th:style="|background-color: ${testCase.priorityColor}; color: ${testCase.priorityTextColor};|"
-                                              th:text="${testCase.priority}">—</span>
-                                        <span th:if="${testCase.priorityColor == null}" th:text="${testCase.priority}">—</span>
-                                    </td>
-                                    <td class="col-status" data-column="status" th:text="${testCase.status}"
-                                        th:attr="title=${testCase.status}"></td>
-                                    <td class="col-folder" data-column="folder" th:text="${testCase.folder}"
-                                        th:attr="title=${testCase.folder}"></td>
-                                    <td class="col-name" data-column="name" th:text="${testCase.name}"
-                                        th:attr="title=${testCase.name}"></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <nav class="pagination" th:if="${pageView.totalItems > 0}" aria-label="Test cases pagination">
-                            <div class="pagination__nav">
-                                <a th:if="${pageView.currentPage > 0}"
-                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage - 1})}"
-                                   class="pagination-link" data-i18n="testcases.pagination.previous">Previous</a>
-
-                                <span class="pagination-info"
-                                      data-i18n="testcases.pagination.info"
-                                      th:attr="data-i18n-current=${pageView.currentPage + 1},
-                                               data-i18n-total=${pageView.totalPages},
-                                               data-i18n-from=${pageView.rangeFrom},
-                                               data-i18n-to=${pageView.rangeTo},
-                                               data-i18n-items=${pageView.totalItems}">
-                                </span>
-
-                                <a th:if="${!pageView.lastPage}"
-                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage + 1})}"
-                                   class="pagination-link" data-i18n="testcases.pagination.next">Next</a>
-                            </div>
-
-                            <label class="rows-per-page" for="rows-per-page">
-                                <span data-i18n="testcases.rowsPerPage">Rows per page</span>
-                                <select id="rows-per-page" name="size">
-                                    <option th:value="${basePageSize}" th:selected="${pageView.pageSize == basePageSize}"
-                                            th:text="${basePageSize}">15</option>
-                                    <option th:value="${basePageSize * 2}" th:selected="${pageView.pageSize == basePageSize * 2}"
-                                            th:text="${basePageSize * 2}">30</option>
-                                    <option th:value="${basePageSize * 4}" th:selected="${pageView.pageSize == basePageSize * 4}"
-                                            th:text="${basePageSize * 4}">60</option>
-                                </select>
-                            </label>
-                        </nav>
-                    </div>
-
-                    <aside class="testcases-page__sidebar">
-                        <section class="testcases-page__columns" aria-labelledby="testcases-columns-heading">
-                            <h2 id="testcases-columns-heading" class="testcases-panel__title" data-i18n="testcases.columns">Columns</h2>
-                            <div class="column-toggles" id="column-toggles">
-                                <label class="column-toggle">
-                                    <input type="checkbox" data-column-toggle="key" checked>
-                                    <span data-i18n="testcases.col.key">Key</span>
-                                </label>
-                                <label class="column-toggle">
-                                    <input type="checkbox" data-column-toggle="priority" checked>
-                                    <span data-i18n="testcases.col.priority">Priority</span>
-                                </label>
-                                <label class="column-toggle">
-                                    <input type="checkbox" data-column-toggle="status" checked>
-                                    <span data-i18n="testcases.col.status">Status</span>
-                                </label>
-                                <label class="column-toggle">
-                                    <input type="checkbox" data-column-toggle="folder" checked>
-                                    <span data-i18n="testcases.col.folder">Folder</span>
-                                </label>
-                                <label class="column-toggle">
-                                    <input type="checkbox" data-column-toggle="name" checked>
-                                    <span data-i18n="testcases.col.name">Name</span>
-                                </label>
-                            </div>
-                        </section>
-
-                        <section class="testcases-page__filters" aria-labelledby="testcases-filters-heading">
-                            <h2 id="testcases-filters-heading" class="testcases-panel__title" data-i18n="testcases.filters">Filters</h2>
-                            <form class="local-filters local-filters--stacked" method="get" th:action="@{/testcases}">
-                                <input type="hidden" name="project" th:value="${project}">
-                                <input type="hidden" name="page" value="0">
-                                <input type="hidden" name="size" th:value="${pageView.pageSize}">
-
-                                <label for="priority-filter" data-i18n="testcases.filter.priority">Priority</label>
-                                <select id="priority-filter" name="priority" onchange="this.form.submit()">
-                                    <option value="" data-i18n="testcases.filter.allPriorities">All priorities</option>
-                                    <option th:each="option : ${pageView.priorities}"
-                                            th:value="${option.id}"
-                                            th:text="${option.name}"
-                                            th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
-                                    </option>
-                                </select>
-
-                                <label for="folder-filter" data-i18n="testcases.filter.folder">Folder</label>
-                                <select id="folder-filter" name="folder" onchange="this.form.submit()">
-                                    <option value="" data-i18n="testcases.filter.allFolders">All folders</option>
-                                    <option th:each="option : ${pageView.folders}"
-                                            th:value="${option.id}"
-                                            th:text="${option.name}"
-                                            th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
-                                    </option>
-                                </select>
-
-                                <label for="status-filter" data-i18n="testcases.filter.status">Status</label>
-                                <select id="status-filter" name="status" onchange="this.form.submit()">
-                                    <option value="" data-i18n="testcases.filter.allStatuses">All statuses</option>
-                                    <option th:each="option : ${pageView.statuses}"
-                                            th:value="${option.id}"
-                                            th:text="${option.name}"
-                                            th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
-                                    </option>
-                                </select>
-
-                                <label for="sort-filter" data-i18n="testcases.filter.sortBy">Sort by</label>
-                                <select id="sort-filter" name="sort" onchange="this.form.submit()">
-                                    <option value="key" th:selected="${pageView.sort.name() == 'KEY'}" data-i18n="testcases.sort.key">Key</option>
-                                    <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}" data-i18n="testcases.sort.priority">Priority</option>
-                                    <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}" data-i18n="testcases.sort.folder">Folder</option>
-                                    <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}" data-i18n="testcases.sort.status">Status</option>
-                                </select>
-
-                                <label for="dir-filter" data-i18n="testcases.filter.order">Order</label>
-                                <select id="dir-filter" name="dir" onchange="this.form.submit()">
-                                    <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}" data-i18n="testcases.sort.asc">Ascending</option>
-                                    <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}" data-i18n="testcases.sort.desc">Descending</option>
-                                </select>
-                            </form>
-                        </section>
-                    </aside>
-                </div>
-            </section>
-
             <section class="testcases-tile testcases-tile--llm llm-panel" aria-labelledby="llm-panel-heading">
                 <h2 id="llm-panel-heading" class="testcases-panel__title" data-i18n="testcases.llm">Local LLM</h2>
 
@@ -196,17 +21,97 @@
                             <span data-i18n="testcases.pullModel">Pull model</span>
                             <input type="text" id="llm-pull-input" placeholder="qwen2.5:3b" spellcheck="false">
                         </label>
-                        <button type="button" id="llm-pull-btn" class="btn btn-secondary" data-i18n="testcases.pullModel">Pull model</button>
+                        <div class="llm-panel__pull-actions">
+                            <button type="button" id="llm-pull-btn" class="btn btn-secondary" data-i18n="testcases.pullModel">Pull model</button>
+                            <a class="llm-panel__browse" href="https://ollama.com/search" target="_blank" rel="noopener noreferrer"
+                               data-i18n="testcases.browseOllama">Browse on Ollama</a>
+                        </div>
                     </div>
 
-                    <a class="llm-panel__browse" href="https://ollama.com/search" target="_blank" rel="noopener noreferrer"
-                       data-i18n="testcases.browseOllama">Browse on Ollama</a>
-
-                    <label class="llm-panel__field" for="llm-num-ctx">
-                        <span data-i18n="testcases.numCtx">Context size</span>
-                        <input type="number" id="llm-num-ctx" min="512" step="512" value="8192">
+                    <label class="llm-panel__field llm-panel__field--ctx" for="llm-num-ctx">
+                        <span data-i18n="testcases.numCtx">Размер контекстного окна</span>
+                        <span class="llm-panel__ctx-input">
+                            <input type="number" id="llm-num-ctx" min="512" step="512" value="8192">
+                            <span class="llm-panel__ctx-unit" data-i18n="testcases.numCtxUnit">токенов</span>
+                        </span>
                     </label>
                 </div>
+
+                <section class="testcases-page__filters" aria-labelledby="testcases-filters-heading">
+                    <h3 id="testcases-filters-heading" class="testcases-filters-heading" data-i18n="testcases.filters">Фильтры</h3>
+                    <form class="local-filters testcases-filters-form" method="get" th:action="@{/testcases}" id="testcases-filters-form">
+                        <input type="hidden" name="project" th:value="${project}">
+                        <input type="hidden" name="page" value="0">
+                        <input type="hidden" name="size" th:value="${pageView.pageSize}">
+                        <input type="hidden" name="show" value="true" id="testcases-show-input">
+                        <input type="hidden" name="select" value="all" id="testcases-select-input">
+
+                        <div class="testcases-filters-form__row">
+                            <div class="testcases-filters-form__grid">
+                                <div class="testcases-filters-form__field">
+                                    <label for="priority-filter" data-i18n="testcases.filter.priority">Приоритет</label>
+                                    <select id="priority-filter" name="priority">
+                                        <option value="" data-i18n="testcases.filter.allPriorities">Все приоритеты</option>
+                                        <option th:each="option : ${pageView.priorities}"
+                                                th:value="${option.id}"
+                                                th:text="${option.name}"
+                                                th:selected="${pageView.selectedPriorityId != null and pageView.selectedPriorityId == option.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="testcases-filters-form__field">
+                                    <label for="folder-filter" data-i18n="testcases.filter.folder">Папка</label>
+                                    <select id="folder-filter" name="folder">
+                                        <option value="" data-i18n="testcases.filter.allFolders">Все папки</option>
+                                        <option th:each="option : ${pageView.folders}"
+                                                th:value="${option.id}"
+                                                th:text="${option.name}"
+                                                th:selected="${pageView.selectedFolderId != null and pageView.selectedFolderId == option.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="testcases-filters-form__field">
+                                    <label for="status-filter" data-i18n="testcases.filter.status">Статус</label>
+                                    <select id="status-filter" name="status">
+                                        <option value="" data-i18n="testcases.filter.allStatuses">Все статусы</option>
+                                        <option th:each="option : ${pageView.statuses}"
+                                                th:value="${option.id}"
+                                                th:text="${option.name}"
+                                                th:selected="${pageView.selectedStatusId != null and pageView.selectedStatusId == option.id}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="testcases-filters-form__field">
+                                    <label for="sort-filter" data-i18n="testcases.filter.sortBy">Сортировка</label>
+                                    <select id="sort-filter" name="sort">
+                                        <option value="key" th:selected="${pageView.sort.name() == 'KEY'}" data-i18n="testcases.sort.key">Ключ</option>
+                                        <option value="priority" th:selected="${pageView.sort.name() == 'PRIORITY'}" data-i18n="testcases.sort.priority">Приоритет</option>
+                                        <option value="folder" th:selected="${pageView.sort.name() == 'FOLDER'}" data-i18n="testcases.sort.folder">Папка</option>
+                                        <option value="status" th:selected="${pageView.sort.name() == 'STATUS'}" data-i18n="testcases.sort.status">Статус</option>
+                                    </select>
+                                </div>
+
+                                <div class="testcases-filters-form__field">
+                                    <label for="dir-filter" data-i18n="testcases.filter.order">Порядок</label>
+                                    <select id="dir-filter" name="dir">
+                                        <option value="asc" th:selected="${pageView.sortDirection.name() == 'ASC'}" data-i18n="testcases.sort.asc">По возрастанию</option>
+                                        <option value="desc" th:selected="${pageView.sortDirection.name() == 'DESC'}" data-i18n="testcases.sort.desc">По убыванию</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="testcases-filters-form__actions">
+                                <button type="submit" id="apply-filters-btn" class="btn btn-secondary"
+                                        data-i18n="testcases.applyFilters" disabled>Применить</button>
+                                <button type="submit" id="view-tests-btn" class="btn btn-primary"
+                                        data-i18n="testcases.viewTests">Просмотреть тесты</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
 
                 <details class="llm-prompt-guide">
                     <summary class="llm-prompt-guide__summary" data-i18n="testcases.promptGuide.title">Prompt writing guide</summary>
@@ -285,6 +190,132 @@
                         <button type="button" id="aisort-save-btn" class="btn btn-primary prompt-save-btn" disabled
                                 data-i18n="testcases.save">Save</button>
                     </article>
+                </div>
+            </section>
+
+            <section class="testcases-tile testcases-tile--tests" id="testcases-list-section">
+                <header class="testcases-page__header">
+                    <div class="actions testcases-page__toolbar">
+                        <button type="button" id="select-all-btn" class="btn btn-secondary"
+                                th:disabled="${!showTests or #lists.isEmpty(pageView.allMatchingTestCaseKeys)}"
+                                data-i18n="testcases.selectAll">Select All</button>
+                        <button type="button" id="prioritize-btn" class="btn btn-primary" disabled
+                                data-i18n="testcases.prioritize">Prioritize</button>
+                        <span id="selection-count" class="selection-count"></span>
+                    </div>
+                </header>
+
+                <div class="testcases-tile__body testcases-tile__body--full">
+                    <div class="testcases-page__list">
+                        <div class="testcases-list-section__controls">
+                            <section class="testcases-columns-bar" aria-labelledby="testcases-columns-heading">
+                                <span id="testcases-columns-heading" class="testcases-columns-bar__label" data-i18n="testcases.columns">Столбцы</span>
+                                <div class="column-toggles" id="column-toggles">
+                                    <label class="column-toggle">
+                                        <input type="checkbox" data-column-toggle="key" checked>
+                                        <span data-i18n="testcases.col.key">Ключ</span>
+                                    </label>
+                                    <label class="column-toggle">
+                                        <input type="checkbox" data-column-toggle="priority" checked>
+                                        <span data-i18n="testcases.col.priority">Приоритет</span>
+                                    </label>
+                                    <label class="column-toggle">
+                                        <input type="checkbox" data-column-toggle="status" checked>
+                                        <span data-i18n="testcases.col.status">Статус</span>
+                                    </label>
+                                    <label class="column-toggle">
+                                        <input type="checkbox" data-column-toggle="folder" checked>
+                                        <span data-i18n="testcases.col.folder">Папка</span>
+                                    </label>
+                                    <label class="column-toggle">
+                                        <input type="checkbox" data-column-toggle="name" checked>
+                                        <span data-i18n="testcases.col.name">Название</span>
+                                    </label>
+                                </div>
+                            </section>
+                        </div>
+
+                        <div class="testcases-table-scroll" id="testcases-table-scroll"
+                             th:classappend="${showTests and pageView.pageSize > basePageSize} ? ' is-scrollable-y' : ''"
+                             th:style="${showTests and pageView.pageSize > basePageSize} ? |--testcases-viewport-rows: ${basePageSize}| : null">
+                            <table class="data-table" id="testcases-table">
+                                <thead>
+                                <tr>
+                                    <th class="col-checkbox" data-column="select"></th>
+                                    <th class="col-key" data-column="key" data-i18n="testcases.col.key">Key</th>
+                                    <th class="col-priority" data-column="priority" data-i18n="testcases.col.priority">Priority</th>
+                                    <th class="col-status" data-column="status" data-i18n="testcases.col.status">Status</th>
+                                    <th class="col-folder" data-column="folder" data-i18n="testcases.col.folder">Folder</th>
+                                    <th class="col-name" data-column="name" data-i18n="testcases.col.name">Name</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:if="${!showTests}">
+                                    <td colspan="6" class="empty-row" data-i18n="testcases.emptyPrompt">Задайте фильтры выше и нажмите «Просмотреть тесты», чтобы загрузить тест-кейсы.</td>
+                                </tr>
+                                <tr th:if="${showTests and #lists.isEmpty(pageView.testCases)}">
+                                    <td colspan="6" class="empty-row" data-i18n="testcases.empty">No test cases found.</td>
+                                </tr>
+                                <tr th:if="${showTests}" th:each="testCase : ${pageView.testCases}">
+                                    <td class="col-checkbox" data-column="select">
+                                        <input type="checkbox" class="testcase-checkbox" th:id="'tc-' + ${testCase.key}"
+                                               th:value="${testCase.key}">
+                                        <label class="sr-only" th:for="'tc-' + ${testCase.key}"
+                                               th:text="'Select test case ' + ${testCase.key}">Select test case</label>
+                                    </td>
+                                    <td class="col-key" data-column="key" th:text="${testCase.key}"
+                                        th:attr="title=${testCase.key}"></td>
+                                    <td class="col-priority" data-column="priority" th:attr="title=${testCase.priority}">
+                                        <span th:if="${testCase.priorityColor != null}"
+                                              class="priority-badge"
+                                              th:style="|background-color: ${testCase.priorityColor}; color: ${testCase.priorityTextColor};|"
+                                              th:text="${testCase.priority}">—</span>
+                                        <span th:if="${testCase.priorityColor == null}" th:text="${testCase.priority}">—</span>
+                                    </td>
+                                    <td class="col-status" data-column="status" th:text="${testCase.status}"
+                                        th:attr="title=${testCase.status}"></td>
+                                    <td class="col-folder" data-column="folder" th:text="${testCase.folder}"
+                                        th:attr="title=${testCase.folder}"></td>
+                                    <td class="col-name" data-column="name" th:text="${testCase.name}"
+                                        th:attr="title=${testCase.name}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <nav class="pagination testcases-list-section__pagination" th:if="${showTests and pageView.totalItems > 0}" aria-label="Test cases pagination">
+                            <div class="pagination__nav">
+                                <a th:if="${pageView.currentPage > 0}"
+                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage - 1}, show=true)}"
+                                   class="pagination-link" data-i18n="testcases.pagination.previous">Previous</a>
+
+                                <span class="pagination-info"
+                                      data-i18n="testcases.pagination.info"
+                                      th:attr="data-i18n-current=${pageView.currentPage + 1},
+                                               data-i18n-total=${pageView.totalPages},
+                                               data-i18n-from=${pageView.rangeFrom},
+                                               data-i18n-to=${pageView.rangeTo},
+                                               data-i18n-items=${pageView.totalItems}">
+                                </span>
+
+                                <a th:if="${!pageView.lastPage}"
+                                   th:href="@{/testcases(project=${project}, priority=${pageView.selectedPriorityId}, folder=${pageView.selectedFolderId}, status=${pageView.selectedStatusId}, sort=${pageView.sort.name().toLowerCase()}, dir=${pageView.sortDirection.name().toLowerCase()}, size=${pageView.pageSize}, page=${pageView.currentPage + 1}, show=true)}"
+                                   class="pagination-link" data-i18n="testcases.pagination.next">Next</a>
+                            </div>
+
+                            <label class="rows-per-page" for="rows-per-page">
+                                <span data-i18n="testcases.rowsPerPage">Rows per page</span>
+                                <select id="rows-per-page" name="size">
+                                    <option th:value="${basePageSize}" th:selected="${pageView.pageSize == basePageSize}"
+                                            th:text="${basePageSize}">15</option>
+                                    <option th:value="${basePageSize * 2}" th:selected="${pageView.pageSize == basePageSize * 2}"
+                                            th:text="${basePageSize * 2}">30</option>
+                                    <option th:value="${basePageSize * 4}" th:selected="${pageView.pageSize == basePageSize * 4}"
+                                            th:text="${basePageSize * 4}">60</option>
+                                </select>
+                            </label>
+                        </nav>
+                    </div>
                 </div>
             </section>
         </main>

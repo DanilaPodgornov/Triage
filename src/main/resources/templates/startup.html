@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::main-content}, null, false, ~{})}">
+<th:block th:fragment="main-content">
+    <section class="tab-content startup-content">
+        <h2 class="settings-heading" data-i18n="setup.title">API credentials</h2>
+        <p class="field-hint" data-i18n="setup.intro">Enter Zephyr Scale and Jira credentials to connect Triage to your test management system.</p>
+
+        <p th:if="${error}" class="error-banner" th:attr="data-i18n=${error}" th:text="${error}"></p>
+
+        <form class="startup-form" method="post" th:action="@{/setup}">
+            <label class="startup-form__field" for="zephyr-api-token">
+                <span data-i18n="setup.zephyrToken">Zephyr Scale API for Jira</span>
+                <input type="password" id="zephyr-api-token" name="zephyrApiToken" required autocomplete="off"
+                       th:value="${zephyrApiToken}">
+            </label>
+
+            <label class="startup-form__field" for="jira-api-url">
+                <span data-i18n="setup.jiraUrl">Jira API URL</span>
+                <input type="url" id="jira-api-url" name="jiraApiUrl" placeholder="https://your-company.atlassian.net"
+                       autocomplete="url" th:value="${jiraApiUrl}">
+            </label>
+
+            <label class="startup-form__field" for="jira-email">
+                <span data-i18n="setup.jiraEmail">Email</span>
+                <input type="email" id="jira-email" name="jiraEmail" autocomplete="username"
+                       th:value="${jiraEmail}">
+            </label>
+
+            <label class="startup-form__field" for="jira-api-token">
+                <span data-i18n="setup.jiraToken">Jira API Token</span>
+                <input type="password" id="jira-api-token" name="jiraApiToken" autocomplete="off"
+                       th:value="${jiraApiToken}">
+            </label>
+
+            <label class="startup-form__remember">
+                <input type="checkbox" name="remember" value="true">
+                <span data-i18n="setup.remember">Remember credentials</span>
+            </label>
+            <p class="field-hint" data-i18n="setup.rememberHint">Saved to secrets.yaml in the project directory.</p>
+
+            <div class="startup-form__actions">
+                <button type="submit" class="btn btn-primary" data-i18n="setup.submit">Continue</button>
+            </div>
+        </form>
+    </section>
+</th:block>
+</html>

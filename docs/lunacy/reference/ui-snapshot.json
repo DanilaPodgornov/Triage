@@ -1,0 +1,423 @@
+{
+  "capturedAt": "2026-06-17T12:46:48.758Z",
+  "locale": "ru",
+  "labels": {
+    "nav.testCases": "Тест-кейсы",
+    "nav.suggestedCycles": "Предложенные тест-циклы",
+    "nav.settings": "Настройки",
+    "filter.project": "Проект",
+    "testcases.selectAll": "Выбрать все",
+    "testcases.prioritize": "Приоритизировать",
+    "testcases.col.key": "Ключ",
+    "testcases.col.priority": "Приоритет",
+    "testcases.col.status": "Статус",
+    "testcases.col.folder": "Папка",
+    "testcases.col.name": "Название",
+    "testcases.pagination.info": "Страница 1 из 89 (элементы 1 - 15 из 1330)",
+    "testcases.pagination.next": "Вперёд",
+    "testcases.rowsPerPage": "Строк на странице",
+    "testcases.columns": "Столбцы",
+    "testcases.filters": "Фильтры",
+    "testcases.filter.priority": "Приоритет",
+    "testcases.filter.allPriorities": "Все приоритеты",
+    "testcases.filter.folder": "Папка",
+    "testcases.filter.allFolders": "Все папки",
+    "testcases.filter.status": "Статус",
+    "testcases.filter.allStatuses": "Все статусы",
+    "testcases.filter.sortBy": "Сортировка",
+    "testcases.sort.key": "Ключ",
+    "testcases.sort.priority": "Приоритет",
+    "testcases.sort.folder": "Папка",
+    "testcases.sort.status": "Статус",
+    "testcases.filter.order": "Порядок",
+    "testcases.sort.asc": "По возрастанию",
+    "testcases.sort.desc": "По убыванию",
+    "testcases.llm": "Локальная LLM",
+    "testcases.chooseLlm": "Модель LLM",
+    "testcases.pullModel": "Скачать модель",
+    "testcases.browseOllama": "Каталог Ollama",
+    "testcases.numCtx": "Размер контекста",
+    "testcases.promptGuide.title": "Рекомендации по промптам",
+    "testcases.promptGuide.intro": "Промпты привязаны к модели. Не удаляйте обязательные плейсхолдеры и не меняйте схему JSON-ответа.",
+    "testcases.promptGuide.weightsTitle": "Промпт weights",
+    "testcases.promptGuide.weightsPlaceholder": "Сохраните плейсхолдер  — приложение подставляет туда метаданные теста.",
+    "testcases.promptGuide.weightsKeys": "JSON-ответ должен содержать ровно восемь ключей: priority, status, labels, executionsCount, failuresCount, failedExecutionsRatio, lastExecutionStatus, executionTime.",
+    "testcases.promptGuide.weightsRules": "Каждое значение от 0 до 1, сумма всех восьми равна 1. Отвечайте только JSON.",
+    "testcases.promptGuide.aisortTitle": "Промпт aisort",
+    "testcases.promptGuide.aisortPlaceholder": "Сохраните плейсхолдер  — приложение подставляет туда список тестов.",
+    "testcases.promptGuide.aisortSchema": "JSON-ответ должен содержать suggestedTestCycleName и массив tests с каждым входным ключом ровно один раз.",
+    "testcases.promptGuide.aisortRules": "Каждый aiSort от 0 до 1, сумма равна 1. Тесты с проваленными запусками должны быть выше.",
+    "testcases.weightsPrompt": "Промпт weights",
+    "testcases.promptVersion": "Версия",
+    "testcases.save": "Сохранить",
+    "testcases.aisortPrompt": "Промпт aisort",
+    "testcases.pullModal.title": "Загрузка модели LLM",
+    "testcases.ok": "ОК",
+    "testcases.progress.title": "Приоритизация тест-кейсов",
+    "testcases.progress.cancel": "Отмена",
+    "testcases.saveWarning.title": "Сохранить версию промпта?",
+    "testcases.saveWarning.text": "Изменение промпта может повлиять на результаты приоритизации. Сохраняйте только если уверены в своих действиях.",
+    "testcases.cancel": "Отменить"
+  },
+  "testCases": {
+    "rows": [
+      {
+        "key": "SQM-T4",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "Каб IPTV",
+        "name": "[Инциденты] Повторяемость инцидента - VB - Без функции агрегации (unicast)"
+      },
+      {
+        "key": "SQM-T7",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Дашборды] Виджет \"Динамика Каб\" услуги ТВ - Расчет"
+      },
+      {
+        "key": "SQM-T8",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[R-PICK] Проверка расчёта поля deltaInterval в таблице rpick.rpick"
+      },
+      {
+        "key": "SQM-T14",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "Кгс",
+        "name": "[Дашборды] Виджет \"Динамика ключевых KQI\""
+      },
+      {
+        "key": "SQM-T20",
+        "priority": "High",
+        "priorityColor": "#ff0000",
+        "priorityTextColor": "#ff0000",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Пользователи и Роли] Страница пользователей - Редактирование пользователя со стороны Администратора"
+      },
+      {
+        "key": "SQM-T23",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Отчеты] Влияние переименования проекции KQI на поля в шаблонах отчётов"
+      },
+      {
+        "key": "SQM-T26",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Отчеты] Удаление каталогов со страницы Отчётов"
+      },
+      {
+        "key": "SQM-T27",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "Крспд IPTV",
+        "name": "[Дашборды] График Динамика ключевых KQI"
+      },
+      {
+        "key": "SQM-T30",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "КабШПД",
+        "name": "[KQI] Проверка вычислений KQI на всех уровнях дерева - Каб-ШПД пользовательская проекция"
+      },
+      {
+        "key": "SQM-T32",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Дашборды] График Здоровье сервисов (потеря сервиса) для услуги ТВ"
+      },
+      {
+        "key": "SQM-T35",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Дашборды] Скачивание xlsx-файлов виджета \"Доля КИ от абонентской базы\" услуги ШПД"
+      },
+      {
+        "key": "SQM-T38",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "Карточка клиента ИТВ",
+        "name": "[Карточка клиента]  Вкладка Соседние порты ИТВ (IPTV)"
+      },
+      {
+        "key": "SQM-T41",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Отчёты] Проверка корректности работы общего лимита в шаблонах отчётов"
+      },
+      {
+        "key": "SQM-T48",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "[Пользователи и Роли] Создание пользователя - Телефон"
+      },
+      {
+        "key": "SQM-T50",
+        "priority": "Normal",
+        "priorityColor": "#ffa900",
+        "priorityTextColor": "#ffa900",
+        "status": "Approved",
+        "folder": "—",
+        "name": "Адаптивность пользовательского интерфейса"
+      }
+    ],
+    "pagination": {
+      "text": "Страница 1 из 89 (элементы 1 - 15 из 1330)",
+      "hasPrevious": false,
+      "hasNext": true
+    },
+    "rowsPerPage": "15"
+  },
+  "llm": {
+    "model": "qwen2.5:7b",
+    "numCtx": "8192",
+    "weightsPrompt": "You are a QA triage assistant. Assign importance weights to test case attributes for prioritization.\n\nGiven the test case metadata and execution history below, return a JSON object with exactly these keys:\n- priority (weight for test priority level)\n- status (weight for test status)\n- labels (weight for labels/tags)\n- executionsCount (weight for number of past executions)\n- failuresCount (weight for linked issues / failure signals)\n- failedExecutionsRatio (weight for the share of executions with Fail status: failedExecutionsCount / executionsCount)\n- lastExecutionStatus (weight for the most recent execution outcome)\n- executionTime (weight for total/recent execution time)\n\nRules:\n- Each value must be a number from 0 to 1 (inclusive).\n- All eight values must sum to exactly 1.\n- Base weights",
+    "aisortPrompt": "You are a QA triage assistant. Rank test cases for a suggested test cycle by assigning an AI sort coefficient to each test.\n\nEach test entry includes:\n- weights: attribute importance (sum = 1 per test)\n- metrics: executionsCount, failuresCount (linked issues), failedExecutionsCount (executions with Fail status), failedExecutionsRatio (failedExecutionsCount / executionsCount, 0 when no executions), lastExecutionStatus, executionTimeMs\n\nAssign an aiSort value (0 to 1) per test so that:\n- Higher aiSort means higher execution priority (run first to find defects early).\n- The sum of all aiSort values across every test must equal exactly 1.\n- Tests with failedExecutionsCount > 0 MUST receive higher aiSort than tests with failedExecutionsCount = 0.\n- Among tests with failed history, prefer those ",
+    "weightsVersion": "0.1.0",
+    "aisortVersion": "0.1.0"
+  },
+  "suggestedCycles": {
+    "rows": [
+      {
+        "key": "SQM-SR75",
+        "name": "High Priority Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR74",
+        "name": "Smoke Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR73",
+        "name": "Smoke Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR72",
+        "name": "Smoke Test Cycle Prioritized",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR71",
+        "name": "Smoke Test Triage",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR70",
+        "name": "Smoke Test Triage Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR69",
+        "name": "Critical Smoke Tests",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR68",
+        "name": "Smoke Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR67",
+        "name": "Smoke Test Prioritization",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR66",
+        "name": "Critical Smoke Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR65",
+        "name": "Smoke Test Prioritization Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR64",
+        "name": "Smoke Test Prioritization",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR63",
+        "name": "Smoke Test Cycle",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR62",
+        "name": "Smoke Tests Prioritization",
+        "status": "Waiting"
+      },
+      {
+        "key": "SQM-SR61",
+        "name": "Smoke Test Cycle",
+        "status": "Waiting"
+      }
+    ],
+    "pagination": "Страница 1 из 5 (элементы 1 - 15 из 70)",
+    "rowsPerPage": "15"
+  },
+  "cycleDetail": {
+    "key": "SQM-SR75",
+    "name": "High Priority Test Cycle",
+    "status": "Waiting",
+    "artifactFolder": "Папка артефактов: 1781692237453_SQM-SR75",
+    "tests": [
+      {
+        "key": "SQM-T7",
+        "name": "[Дашборды] Виджет \"Динамика Каб\" услуги ТВ - Расчет",
+        "weights": {
+          "priority": 0.09523809523809523,
+          "status": 0.047619047619047616,
+          "labels": 0.19047619047619047,
+          "executionsCount": 0.09523809523809523,
+          "failuresCount": 0.14285714285714285,
+          "failedExecutionsRatio": 0.047619047619047616,
+          "lastExecutionStatus": 0.09523809523809523,
+          "executionTime": 0.2857142857142857
+        },
+        "metrics": {
+          "executionsCount": 2,
+          "failuresCount": 0,
+          "failedExecutionsCount": 0,
+          "failedExecutionsRatio": 0,
+          "lastExecutionStatus": "Not Executed",
+          "executionTimeMs": 0
+        },
+        "aiSort": 0.4
+      },
+      {
+        "key": "SQM-T8",
+        "name": "[R-PICK] Проверка расчёта поля deltaInterval в таблице rpick.rpick",
+        "weights": {
+          "priority": 0.15,
+          "status": 0.05,
+          "labels": 0.1,
+          "executionsCount": 0.1,
+          "failuresCount": 0.05,
+          "failedExecutionsRatio": 0.05,
+          "lastExecutionStatus": 0.2,
+          "executionTime": 0.3
+        },
+        "metrics": {
+          "executionsCount": 2,
+          "failuresCount": 0,
+          "failedExecutionsCount": 0,
+          "failedExecutionsRatio": 0,
+          "lastExecutionStatus": "Not Executed",
+          "executionTimeMs": 0
+        },
+        "aiSort": 0.35
+      },
+      {
+        "key": "SQM-T4",
+        "name": "[Инциденты] Повторяемость инцидента - VB - Без функции агрегации (unicast)",
+        "weights": {
+          "priority": 0.09090909090909091,
+          "status": 0.045454545454545456,
+          "labels": 0.18181818181818182,
+          "executionsCount": 0.09090909090909091,
+          "failuresCount": 0.09090909090909091,
+          "failedExecutionsRatio": 0.09090909090909091,
+          "lastExecutionStatus": 0.13636363636363635,
+          "executionTime": 0.2727272727272727
+        },
+        "metrics": {
+          "executionsCount": 2,
+          "failuresCount": 0,
+          "failedExecutionsCount": 0,
+          "failedExecutionsRatio": 0,
+          "lastExecutionStatus": "Not Executed",
+          "executionTimeMs": 0
+        },
+        "aiSort": 0.25
+      }
+    ]
+  },
+  "settings": {
+    "theme": "system",
+    "locale": "ru"
+  },
+  "styles": {
+    "header": {
+      "color": "rgb(255, 255, 255)",
+      "backgroundColor": "rgb(31, 41, 55)",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "padding": "0px",
+      "borderRadius": "0px"
+    },
+    "tabActive": {
+      "color": "rgb(37, 99, 235)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "padding": "12px 16px",
+      "borderRadius": "0px"
+    },
+    "btnPrimary": {
+      "color": "rgb(255, 255, 255)",
+      "backgroundColor": "rgb(147, 197, 253)",
+      "fontSize": "14px",
+      "fontWeight": "400",
+      "padding": "8px 16px",
+      "borderRadius": "4px"
+    },
+    "priorityBadge": {
+      "color": "rgb(17, 24, 39)",
+      "backgroundColor": "rgb(255, 169, 0)",
+      "fontSize": "12px",
+      "fontWeight": "600",
+      "padding": "2px 10px",
+      "borderRadius": "4px"
+    },
+    "dataTableTh": {
+      "color": "rgb(34, 34, 34)",
+      "backgroundColor": "rgb(249, 250, 251)",
+      "fontSize": "14px",
+      "fontWeight": "600",
+      "padding": "8px 12px",
+      "borderRadius": "0px"
+    }
+  },
+  "modal": {
+    "progressText": "Анализ теста 1 / 3 (SQM-T4)…",
+    "progressTimer": "Прошло: 00:02"
+  }
+}

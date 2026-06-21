@@ -35,10 +35,36 @@ public class TestCaseService {
 	}
 
 	public TestCasesPageView getTestCasesPage(Project project, TestCaseListQuery query) {
+		return getTestCasesPage(project, query, true);
+	}
+
+	public TestCasesPageView getTestCasesPage(Project project, TestCaseListQuery query, boolean includeTests) {
 		String projectKey = zephyrScaleClient.resolveProjectKey(project);
 		List<FilterOption> priorities = loadPriorities(projectKey);
 		List<FilterOption> folders = loadFolders(projectKey);
 		List<FilterOption> statuses = loadStatuses(projectKey);
+
+		if (!includeTests) {
+			return new TestCasesPageView(
+					project,
+					priorities,
+					folders,
+					statuses,
+					query.priorityId().orElse(null),
+					query.folderId().orElse(null),
+					query.statusId().orElse(null),
+					query.sort(),
+					query.sortDirection(),
+					List.of(),
+					List.of(),
+					0,
+					query.pageSize(),
+					0,
+					0,
+					0,
+					1,
+					true);
+		}
 
 		Map<Long, String> priorityNames = toNameMap(priorities);
 		Map<Long, String> priorityColors = toColorMap(priorities);

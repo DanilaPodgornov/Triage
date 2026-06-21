@@ -154,7 +154,7 @@ class SuggestedTestCycleServiceTest {
 	void shouldSaveCycleNameWithSortState() {
 		storage.save(waitingCycle());
 
-		service.saveSortState("SQM-SR1", "key", "ASC", "Renamed cycle");
+		service.saveSortState("SQM-SR1", "key", "ASC", "Renamed cycle", null);
 
 		SuggestedTestCycle loaded = storage.findByKey("SQM-SR1").orElseThrow();
 		assertThat(loaded.suggestedTestCycleName()).isEqualTo("Renamed cycle");

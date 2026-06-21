@@ -18,6 +18,19 @@ const TRIAGE_MESSAGES = {
         'testcases.progress.elapsed': 'Elapsed: {time}',
         'testcases.progress.cancel': 'Cancel',
         'testcases.selected': '{count} selected',
+        'setup.title': 'API credentials',
+        'setup.intro': 'Enter Zephyr Scale and Jira credentials to connect Triage to your test management system.',
+        'setup.zephyrToken': 'Zephyr Scale API for Jira',
+        'setup.jiraUrl': 'Jira API URL',
+        'setup.jiraEmail': 'Email',
+        'setup.jiraToken': 'Jira API Token',
+        'setup.remember': 'Remember credentials',
+        'setup.rememberHint': 'Saved to secrets.yaml in the project directory.',
+        'setup.submit': 'Continue',
+        'setup.error.zephyrRequired': 'Zephyr Scale API token is required.',
+        'setup.error.saveFailed': 'Failed to save credentials to secrets.yaml.',
+        'testcases.applyFilters': 'Apply',
+        'testcases.viewTests': 'View tests',
         'testcases.filters': 'Filters',
         'testcases.columns': 'Columns',
         'testcases.llm': 'Local LLM',
@@ -31,7 +44,8 @@ const TRIAGE_MESSAGES = {
         'testcases.save': 'Save',
         'testcases.download': 'Download',
         'testcases.rowsPerPage': 'Rows per page',
-        'testcases.numCtx': 'Context size',
+        'testcases.numCtx': 'Context window size',
+        'testcases.numCtxUnit': 'tokens',
         'testcases.saveWarning.title': 'Save prompt version?',
         'testcases.saveWarning.text': 'Changing the prompt may affect prioritization results. Save only if you are confident in your changes.',
         'testcases.cancel': 'Cancel',
@@ -60,6 +74,7 @@ const TRIAGE_MESSAGES = {
         'testcases.col.name': 'Name',
         'testcases.col.select': 'Select',
         'testcases.empty': 'No test cases found.',
+        'testcases.emptyPrompt': 'Use filters above and click "View tests" to load test cases.',
         'testcases.pagination.previous': 'Previous',
         'testcases.pagination.next': 'Next',
         'testcases.pagination.info': 'Page {current} of {total} (items {from} - {to} of {items})',
@@ -131,6 +146,19 @@ const TRIAGE_MESSAGES = {
         'testcases.progress.elapsed': 'Прошло: {time}',
         'testcases.progress.cancel': 'Отмена',
         'testcases.selected': 'Выбрано: {count}',
+        'setup.title': 'Учётные данные API',
+        'setup.intro': 'Введите учётные данные Zephyr Scale и Jira для подключения Triage к системе управления тестами.',
+        'setup.zephyrToken': 'Zephyr Scale API for Jira',
+        'setup.jiraUrl': 'Jira API URL',
+        'setup.jiraEmail': 'Email',
+        'setup.jiraToken': 'Jira API Token',
+        'setup.remember': 'Запомнить учётные данные',
+        'setup.rememberHint': 'Сохраняется в secrets.yaml в каталоге проекта.',
+        'setup.submit': 'Продолжить',
+        'setup.error.zephyrRequired': 'Требуется токен Zephyr Scale API.',
+        'setup.error.saveFailed': 'Не удалось сохранить учётные данные в secrets.yaml.',
+        'testcases.applyFilters': 'Применить',
+        'testcases.viewTests': 'Просмотреть тесты',
         'testcases.filters': 'Фильтры',
         'testcases.columns': 'Столбцы',
         'testcases.llm': 'Локальная LLM',
@@ -138,13 +166,14 @@ const TRIAGE_MESSAGES = {
         'testcases.chooseLlmPlaceholder': 'Выберите LLM',
         'testcases.pullModel': 'Скачать модель',
         'testcases.browseOllama': 'Каталог Ollama',
-        'testcases.weightsPrompt': 'Промпт weights',
-        'testcases.aisortPrompt': 'Промпт aisort',
+        'testcases.weightsPrompt': 'Промпт весов',
+        'testcases.aisortPrompt': 'Промпт AI-сортировки',
         'testcases.promptVersion': 'Версия',
         'testcases.save': 'Сохранить',
         'testcases.download': 'Скачать',
         'testcases.rowsPerPage': 'Строк на странице',
-        'testcases.numCtx': 'Размер контекста',
+        'testcases.numCtx': 'Размер контекстного окна',
+        'testcases.numCtxUnit': 'токенов',
         'testcases.saveWarning.title': 'Сохранить версию промпта?',
         'testcases.saveWarning.text': 'Изменение промпта может повлиять на результаты приоритизации. Сохраняйте только если уверены в своих действиях.',
         'testcases.cancel': 'Отменить',
@@ -158,11 +187,11 @@ const TRIAGE_MESSAGES = {
         'testcases.promptMissing': 'Не обнаружено ни одного промпта для данной модели, пожалуйста, напишите его, следуя рекомендациям в выпадающем меню выше.',
         'testcases.promptGuide.title': 'Рекомендации по промптам',
         'testcases.promptGuide.intro': 'Промпты привязаны к модели. Не удаляйте обязательные плейсхолдеры и не меняйте схему JSON-ответа.',
-        'testcases.promptGuide.weightsTitle': 'Промпт weights',
+        'testcases.promptGuide.weightsTitle': 'Промпт весов',
         'testcases.promptGuide.weightsPlaceholder': 'Сохраните плейсхолдер {testCaseData} — приложение подставляет туда метаданные теста.',
         'testcases.promptGuide.weightsKeys': 'JSON-ответ должен содержать ровно восемь ключей: priority, status, labels, executionsCount, failuresCount, failedExecutionsRatio, lastExecutionStatus, executionTime.',
         'testcases.promptGuide.weightsRules': 'Каждое значение от 0 до 1, сумма всех восьми равна 1. Отвечайте только JSON.',
-        'testcases.promptGuide.aisortTitle': 'Промпт aisort',
+        'testcases.promptGuide.aisortTitle': 'Промпт AI-сортировки',
         'testcases.promptGuide.aisortPlaceholder': 'Сохраните плейсхолдер {testCasesJson} — приложение подставляет туда список тестов.',
         'testcases.promptGuide.aisortSchema': 'JSON-ответ должен содержать suggestedTestCycleName и массив tests с каждым входным ключом ровно один раз.',
         'testcases.promptGuide.aisortRules': 'Каждый aiSort от 0 до 1, сумма равна 1. Тесты с проваленными запусками должны быть выше.',
@@ -173,6 +202,7 @@ const TRIAGE_MESSAGES = {
         'testcases.col.name': 'Название',
         'testcases.col.select': 'Выбор',
         'testcases.empty': 'Тест-кейсы не найдены.',
+        'testcases.emptyPrompt': 'Задайте фильтры выше и нажмите «Просмотреть тесты», чтобы загрузить тест-кейсы.',
         'testcases.pagination.previous': 'Назад',
         'testcases.pagination.next': 'Вперёд',
         'testcases.pagination.info': 'Страница {current} из {total} (элементы {from} - {to} из {items})',
@@ -238,8 +268,27 @@ function getLocale() {
 function translate(key, params = {}) {
     const locale = getLocale();
     const messages = TRIAGE_MESSAGES[locale] || TRIAGE_MESSAGES.en;
-    const template = messages[key] || TRIAGE_MESSAGES.en[key] || key;
+    const template = messages[key] || TRIAGE_MESSAGES.en[key];
+    if (template == null) {
+        return null;
+    }
     return formatMessage(template, params);
+}
+
+function resolveTranslation(element, key, params = {}) {
+    const translated = translate(key, params);
+    if (translated != null) {
+        return translated;
+    }
+    const fallback = element.dataset.i18nFallback;
+    if (fallback) {
+        return fallback;
+    }
+    const existingText = element.textContent?.trim();
+    if (existingText && !existingText.includes('.')) {
+        return existingText;
+    }
+    return TRIAGE_MESSAGES.en[key] || existingText || '';
 }
 
 function applyTranslations(root = document) {
@@ -248,19 +297,40 @@ function applyTranslations(root = document) {
         if (!key) {
             return;
         }
+        if (!element.dataset.i18nFallback && element.textContent?.trim()) {
+            element.dataset.i18nFallback = element.textContent.trim();
+        }
         const params = {};
         Array.from(element.attributes).forEach(attr => {
-            if (attr.name.startsWith('data-i18n-') && attr.name !== 'data-i18n') {
+            if (attr.name.startsWith('data-i18n-') && attr.name !== 'data-i18n' && attr.name !== 'data-i18n-fallback') {
                 params[attr.name.slice('data-i18n-'.length)] = attr.value;
             }
         });
-        element.textContent = translate(key, params);
+        element.textContent = resolveTranslation(element, key, params);
     });
 
     root.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
-        if (key) {
-            element.placeholder = translate(key);
+        if (!key) {
+            return;
+        }
+        const translated = translate(key);
+        if (translated != null) {
+            element.placeholder = translated;
+        }
+    });
+
+    root.querySelectorAll('[data-i18n-title]').forEach(element => {
+        const key = element.getAttribute('data-i18n-title');
+        if (!key) {
+            return;
+        }
+        const translated = resolveTranslation(element, key);
+        if (translated) {
+            element.title = translated;
+            if (element.hasAttribute('aria-label')) {
+                element.setAttribute('aria-label', translated);
+            }
         }
     });
 

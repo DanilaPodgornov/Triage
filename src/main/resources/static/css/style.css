@@ -356,6 +356,196 @@ body {
     margin-bottom: 20px;
 }
 
+.llm-panel__pull-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    align-self: flex-end;
+}
+
+.llm-panel__field--ctx .llm-panel__ctx-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.llm-panel__ctx-unit {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-muted);
+    white-space: nowrap;
+}
+
+.testcases-filters-form {
+    margin-bottom: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#testcases-filters-form > .testcases-filters-form__row {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.testcases-filters-heading {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-strong);
+}
+
+.testcases-filters-form__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.testcases-filters-form__grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px 12px;
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+.testcases-filters-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 100px;
+    flex: 1 1 0;
+    max-width: none;
+}
+
+.testcases-filters-form__field label {
+    margin-bottom: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-strong);
+}
+
+.testcases-filters-form__field select {
+    width: 100%;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+.testcases-filters-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.testcases-tile--tests .testcases-tile__body--full {
+    display: block;
+    grid-template-columns: none;
+}
+
+#testcases-list-section .testcases-page__list {
+    border-right: none;
+    width: 100%;
+    padding: 12px 0 16px;
+    box-sizing: border-box;
+}
+
+#testcases-list-section .testcases-page__header {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.testcases-list-section__controls {
+    padding: 0 20px 10px;
+}
+
+.testcases-list-section__pagination {
+    padding: 0 20px;
+}
+
+.testcases-columns-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+.testcases-columns-bar__label {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-strong);
+    white-space: nowrap;
+}
+
+#testcases-list-section .column-toggles {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+#testcases-list-section .column-toggle {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#testcases-list-section .testcases-table-scroll {
+    width: 100%;
+}
+
+.testcases-page__columns {
+    margin-bottom: 12px;
+}
+
+.startup-content {
+    max-width: 520px;
+}
+
+.startup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.startup-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-strong);
+}
+
+.startup-form__field input {
+    padding: 8px 10px;
+    border: 1px solid var(--color-border-input);
+    border-radius: 4px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 400;
+}
+
+.startup-form__remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.startup-form__actions {
+    margin-top: 8px;
+}
+
 .llm-panel__field {
     display: flex;
     flex-direction: column;
@@ -385,7 +575,8 @@ body {
 }
 
 .llm-panel__browse {
-    align-self: center;
+    display: inline-flex;
+    align-items: center;
     font-size: 14px;
     color: var(--color-link, #2563eb);
     text-decoration: none;
@@ -518,8 +709,10 @@ body {
 
 .column-toggles {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    align-items: center;
 }
 
 .column-toggle {
@@ -875,6 +1068,22 @@ body {
     color: var(--color-drag-handle);
     font-size: 18px;
     user-select: none;
+    cursor: grab;
+}
+
+#suggested-cycle-table .col-drag {
+    width: 36px;
+    padding-left: 8px;
+    padding-right: 4px;
+}
+
+#suggested-cycle-table tbody tr.dragging {
+    opacity: 0.6;
+    background: var(--color-surface-muted);
+}
+
+#suggested-cycle-table tbody tr.drag-over td {
+    border-top: 2px solid var(--color-link, #2563eb);
 }
 
 .test-case-key {

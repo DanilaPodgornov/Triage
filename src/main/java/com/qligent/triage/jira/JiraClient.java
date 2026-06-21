@@ -4,14 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.qligent.triage.config.JiraProperties;
+import com.qligent.triage.config.RuntimeCredentials;
 import com.qligent.triage.jira.dto.JiraIssueSummary;
 
 @Component
@@ -21,17 +20,17 @@ public class JiraClient {
 	private static final String ISSUE_FIELDS = "summary,status,priority,description";
 
 	private final RestClient restClient;
-	private final JiraProperties properties;
+	private final RuntimeCredentials runtimeCredentials;
 
 	public JiraClient(
-			@Autowired(required = false) @Qualifier("jiraRestClient") RestClient restClient,
-			JiraProperties properties) {
+			@Qualifier("jiraRestClient") RestClient restClient,
+			RuntimeCredentials runtimeCredentials) {
 		this.restClient = restClient;
-		this.properties = properties;
+		this.runtimeCredentials = runtimeCredentials;
 	}
 
 	public boolean isAvailable() {
-		return properties.isConfigured() && restClient != null;
+		return runtimeCredentials.isJiraConfigured();
 	}
 
 	public Optional<JiraIssueSummary> getIssue(long issueId) {
@@ -43,8 +42,11 @@ public class JiraClient {
 			return Optional.empty();
 		}
 		try {
+			String baseUrl = normalizeBaseUrl(runtimeCredentials.jiraApiUrl().orElseThrow());
+			String authorization = basicAuthorizationHeader();
 			var response = restClient.get()
-					.uri("/rest/api/3/issue/{issueIdOrKey}?fields={fields}", issueIdOrKey, ISSUE_FIELDS)
+					.uri(baseUrl + "/rest/api/3/issue/{issueIdOrKey}?fields={fields}", issueIdOrKey, ISSUE_FIELDS)
+					.header("Authorization", authorization)
 					.retrieve()
 					.body(JiraIssueResponse.class);
 			if (response == null || response.fields() == null) {
@@ -110,6 +112,22 @@ public class JiraClient {
 		if ("paragraph".equals(type) || "heading".equals(type)) {
 			builder.append('\n');
 		}
+	}
+
+	private String basicAuthorizationHeader() {
+		String credentials = runtimeCredentials.jiraEmail().orElse("")
+				+ ":"
+				+ runtimeCredentials.jiraApiToken().orElse("");
+		String encodedCredentials = java.util.Base64.getEncoder()
+				.encodeToString(credentials.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		return "Basic " + encodedCredentials;
+	}
+
+	private static String normalizeBaseUrl(String apiUrl) {
+		if (apiUrl.endsWith("/")) {
+			return apiUrl.substring(0, apiUrl.length() - 1);
+		}
+		return apiUrl;
 	}
 
 	private String truncate(String value) {

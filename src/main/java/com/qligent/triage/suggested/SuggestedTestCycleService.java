@@ -2,7 +2,12 @@ package com.qligent.triage.suggested;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +68,24 @@ public class SuggestedTestCycleService {
 		return file;
 	}
 
-	public void saveSortState(String cycleKey, String sortField, String sortDirection, String suggestedTestCycleName) {
+	public void saveSortState(
+			String cycleKey,
+			String sortField,
+			String sortDirection,
+			String suggestedTestCycleName,
+			List<String> orderedKeys) {
 		var existing = getByKey(cycleKey);
-		String normalizedField = sortField == null || sortField.isBlank()
-				? SuggestedTestCycle.DEFAULT_SORT_FIELD
-				: sortField.trim();
-		String normalizedDirection = normalizeSortDirection(sortDirection);
-		var updated = existing.withSortState(normalizedField, normalizedDirection);
+		var updated = existing;
+		if (orderedKeys != null && !orderedKeys.isEmpty()) {
+			updated = updated.withTests(reorderTests(existing.tests(), orderedKeys))
+					.withSortState(SuggestedTestCycle.MANUAL_SORT_FIELD, "ASC");
+		} else {
+			String normalizedField = sortField == null || sortField.isBlank()
+					? SuggestedTestCycle.DEFAULT_SORT_FIELD
+					: sortField.trim();
+			String normalizedDirection = normalizeSortDirection(sortDirection);
+			updated = existing.withSortState(normalizedField, normalizedDirection);
+		}
 		if (suggestedTestCycleName != null) {
 			String trimmedName = suggestedTestCycleName.trim();
 			if (!trimmedName.isEmpty()) {
@@ -77,6 +93,29 @@ public class SuggestedTestCycleService {
 			}
 		}
 		storage.update(updated);
+	}
+
+	private static List<SuggestedTestCycle.SuggestedTestCaseEntry> reorderTests(
+			List<SuggestedTestCycle.SuggestedTestCaseEntry> tests,
+			List<String> orderedKeys) {
+		if (tests == null || tests.isEmpty()) {
+			return List.of();
+		}
+		Map<String, SuggestedTestCycle.SuggestedTestCaseEntry> byKey = tests.stream()
+				.collect(Collectors.toMap(
+						SuggestedTestCycle.SuggestedTestCaseEntry::key,
+						Function.identity(),
+						(existing, duplicate) -> existing,
+						LinkedHashMap::new));
+		List<SuggestedTestCycle.SuggestedTestCaseEntry> reordered = new ArrayList<>();
+		for (String key : orderedKeys) {
+			SuggestedTestCycle.SuggestedTestCaseEntry entry = byKey.remove(key);
+			if (entry != null) {
+				reordered.add(entry);
+			}
+		}
+		reordered.addAll(byKey.values());
+		return reordered;
 	}
 
 	private static String normalizeSortDirection(String sortDirection) {
@@ -106,10 +145,15 @@ public class SuggestedTestCycleService {
 		}
 		String zephyrTestCycleKey = createdCycle.key();
 
-		List<SuggestedTestCycle.SuggestedTestCaseEntry> orderedTests = SuggestedTestCaseSorter.sort(
-				existing.tests(),
-				existing.sortField(),
-				existing.sortDirection());
+		List<SuggestedTestCycle.SuggestedTestCaseEntry> orderedTests;
+		if (SuggestedTestCycle.MANUAL_SORT_FIELD.equalsIgnoreCase(existing.sortField())) {
+			orderedTests = existing.tests() == null ? List.of() : existing.tests();
+		} else {
+			orderedTests = SuggestedTestCaseSorter.sort(
+					existing.tests(),
+					existing.sortField(),
+					existing.sortDirection());
+		}
 		for (SuggestedTestCycle.SuggestedTestCaseEntry test : orderedTests) {
 			zephyrScaleClient.createTestExecution(new CreateTestExecutionRequest(
 					existing.projectKey(),
