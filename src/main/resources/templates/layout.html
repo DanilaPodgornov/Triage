@@ -3,6 +3,7 @@
       th:attr="data-default-theme=${defaultTheme}, data-default-locale=${defaultLocale}">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <title th:text="${pageTitle != null ? pageTitle + ' — Triage' : 'Triage'}">Triage</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">

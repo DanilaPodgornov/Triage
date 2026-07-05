@@ -22,7 +22,7 @@
                             <input type="text" id="llm-pull-input" placeholder="qwen2.5:3b" spellcheck="false">
                         </label>
                         <div class="llm-panel__pull-actions">
-                            <button type="button" id="llm-pull-btn" class="btn btn-secondary" data-i18n="testcases.pullModel">Pull model</button>
+                            <button type="button" id="llm-pull-btn" class="btn btn-secondary" data-i18n="testcases.pullModelBtn">Pull model</button>
                             <a class="llm-panel__browse" href="https://ollama.com/search" target="_blank" rel="noopener noreferrer"
                                data-i18n="testcases.browseOllama">Browse on Ollama</a>
                         </div>
@@ -105,9 +105,9 @@
 
                             <div class="testcases-filters-form__actions">
                                 <button type="submit" id="apply-filters-btn" class="btn btn-secondary"
-                                        data-i18n="testcases.applyFilters" disabled>Применить</button>
+                                        data-i18n="testcases.applyFilters" disabled>Применить фильтры</button>
                                 <button type="submit" id="view-tests-btn" class="btn btn-primary"
-                                        data-i18n="testcases.viewTests">Просмотреть тесты</button>
+                                        data-i18n="testcases.viewTests">Отобразить тесты</button>
                             </div>
                         </div>
                     </form>
@@ -251,7 +251,7 @@
                                 </thead>
                                 <tbody>
                                 <tr th:if="${!showTests}">
-                                    <td colspan="6" class="empty-row" data-i18n="testcases.emptyPrompt">Задайте фильтры выше и нажмите «Просмотреть тесты», чтобы загрузить тест-кейсы.</td>
+                                    <td colspan="6" class="empty-row" data-i18n="testcases.emptyPrompt">Задайте фильтры выше и нажмите «Отобразить тесты», чтобы загрузить тест-кейсы.</td>
                                 </tr>
                                 <tr th:if="${showTests and #lists.isEmpty(pageView.testCases)}">
                                     <td colspan="6" class="empty-row" data-i18n="testcases.empty">No test cases found.</td>

@@ -761,33 +761,10 @@ body {
     color: var(--color-muted);
 }
 
-@media (max-width: 960px) {
-    .container {
-        padding-left: 24px;
-        padding-right: 24px;
-    }
-
-    .testcases-tile__body {
-        grid-template-columns: 1fr;
-    }
-
-    .testcases-page__list {
-        border-right: none;
-        border-bottom: 1px solid var(--color-border);
-    }
-
-    .llm-panel__editors {
-        grid-template-columns: 1fr;
-    }
-
-    .pagination {
-        flex-wrap: wrap;
-    }
-
-    .rows-per-page {
-        margin-left: auto;
-        width: auto;
-    }
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .data-table {
@@ -1097,6 +1074,10 @@ body {
     color: var(--color-text-strong);
 }
 
+.settings-content > h2:nth-child(3) {
+    margin-top: 24px;
+}
+
 .settings-form {
     margin: 0;
 }
@@ -1281,5 +1262,305 @@ body {
 @keyframes progress-spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive breakpoints: 1024 / 768 / 480                           */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+    .container {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .testcases-tile__body {
+        grid-template-columns: 1fr;
+    }
+
+    .testcases-page__list {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .llm-panel__editors {
+        grid-template-columns: 1fr;
+    }
+
+    .testcases-page__main {
+        gap: 40px;
+    }
+
+    .testcases-table-scroll,
+    .table-scroll {
+        overflow-x: auto;
+    }
+
+    .tab-content:has(> .data-table) {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #testcases-table {
+        min-width: 640px;
+    }
+
+    #suggested-cycle-table {
+        min-width: 960px;
+    }
+
+    .tab-content .data-table:not(#testcases-table):not(#suggested-cycle-table) {
+        min-width: 480px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .app-header .container {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .app-header h1,
+    .app-brand {
+        font-size: 18px;
+    }
+
+    .app-main > .container {
+        padding-top: 16px;
+        padding-bottom: 24px;
+    }
+
+    .app-section .container {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+
+    .tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab-link {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .tab-content {
+        padding: 12px;
+    }
+
+    .actions,
+    .testcases-page__toolbar,
+    .cycle-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .testcases-filters-form__row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .testcases-filters-form__grid {
+        flex: 1 1 100%;
+    }
+
+    .testcases-filters-form__field {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 140px;
+    }
+
+    .testcases-filters-form__actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .testcases-filters-form__actions .btn {
+        flex: 1 1 auto;
+    }
+
+    .llm-panel__settings {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .llm-panel__pull {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .llm-panel__pull-actions {
+        align-self: stretch;
+        flex-wrap: wrap;
+    }
+
+    .llm-panel__field select,
+    .llm-panel__field input[type="text"],
+    .llm-panel__field input[type="number"] {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .prompt-editor__header {
+        flex-wrap: wrap;
+    }
+
+    .testcases-columns-bar {
+        flex-wrap: wrap;
+    }
+
+    #testcases-list-section .column-toggles {
+        flex-wrap: wrap;
+        overflow-x: visible;
+    }
+
+    .pagination {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .pagination__nav {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .rows-per-page {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .cycle-meta--name {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cycle-name-input {
+        max-width: none;
+        width: 100%;
+    }
+
+    .cycle-actions .btn,
+    .cycle-actions .btn-link {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .llm-panel {
+        padding: 16px;
+    }
+
+    .testcases-page__header,
+    #testcases-list-section .testcases-page__header {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .testcases-list-section__controls,
+    .testcases-list-section__pagination {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .progress-modal {
+        padding: 16px;
+        align-items: flex-end;
+    }
+
+    .progress-modal__panel {
+        width: 100%;
+        max-width: none;
+        padding: 20px 16px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .confirm-modal__actions {
+        flex-wrap: wrap;
+    }
+
+    .confirm-modal__actions .btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .tab-link {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .testcases-filters-form__field {
+        flex: 1 1 100%;
+    }
+
+    .testcases-filters-form__actions {
+        flex-direction: column;
+    }
+
+    .testcases-filters-form__actions .btn {
+        width: 100%;
+    }
+
+    .actions .btn,
+    .testcases-page__toolbar .btn,
+    .cycle-actions .btn,
+    .cycle-actions .btn-link {
+        width: 100%;
+    }
+
+    .selection-count {
+        width: 100%;
+    }
+
+    .rows-per-page {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .rows-per-page select {
+        width: 100%;
+    }
+
+    .startup-content {
+        max-width: none;
+    }
+
+    .prompt-editor__actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .llm-panel__pull-actions .btn {
+        width: 100%;
+    }
+
+    .progress-modal {
+        padding: 0;
+    }
+
+    .progress-modal__panel {
+        border-radius: 12px 12px 0 0;
     }
 }
