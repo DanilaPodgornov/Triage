@@ -41,6 +41,7 @@ out/
 .obsidian/
 Zephyr Scale API
 Zephyr Scale API Access Token.txt
+secrets.yaml
 llm/io/
 llm/llm-settings.json
 suggested_test_cycles/
